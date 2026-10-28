@@ -28,11 +28,18 @@ class _AvatarPickerState extends ConsumerState<AvatarPicker> {
   double? _progress;
 
   Future<void> _pick() async {
-    final file = await ImagePicker().pickImage(source: ImageSource.gallery, maxWidth: 1024, maxHeight: 1024, imageQuality: 88);
+    final file = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 88,
+    );
     if (file == null) return;
     setState(() => _progress = 0);
     try {
-      final media = await ref.read(mediaUploaderProvider).upload(
+      final media = await ref
+          .read(mediaUploaderProvider)
+          .upload(
             path: file.path,
             kind: 'avatar',
             draft: MediaRef(url: '', name: file.name, mime: file.mimeType ?? 'image/jpeg'),

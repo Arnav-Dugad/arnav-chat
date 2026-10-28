@@ -38,17 +38,22 @@ class Avatar extends StatelessWidget {
     final dpr = MediaQuery.devicePixelRatioOf(context);
     final px = (size * dpr).round();
     Widget fallback() => DecoratedBox(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: g),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: g),
+      ),
+      child: Center(
+        child: Text(
+          _initials,
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: size * 0.38,
+            letterSpacing: -0.3,
           ),
-          child: Center(
-            child: Text(
-              _initials,
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: size * 0.38, letterSpacing: -0.3),
-            ),
-          ),
-        );
+        ),
+      ),
+    );
 
     Widget circle = SizedBox.square(
       dimension: size,

@@ -28,7 +28,10 @@ void main() {
     const url = 'https://res.cloudinary.com/demo/image/upload/v1/arnav-chat/u/image/a.jpg';
 
     test('injects CDN transformations', () {
-      expect(MediaUrl.fit(url, 600), 'https://res.cloudinary.com/demo/image/upload/c_limit,w_600,f_auto,q_auto/v1/arnav-chat/u/image/a.jpg');
+      expect(
+        MediaUrl.fit(url, 600),
+        'https://res.cloudinary.com/demo/image/upload/c_limit,w_600,f_auto,q_auto/v1/arnav-chat/u/image/a.jpg',
+      );
     });
 
     test('leaves foreign URLs alone', () {

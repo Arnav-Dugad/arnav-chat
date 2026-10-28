@@ -11,8 +11,7 @@ abstract final class Springs {
 
 /// A [Curve] driven by a spring simulation from 0 to 1. Allows overshoot.
 class SpringCurve extends Curve {
-  SpringCurve(SpringDescription spring, {this.settle = 0.6})
-      : _sim = SpringSimulation(spring, 0, 1, 0);
+  SpringCurve(SpringDescription spring, {this.settle = 0.6}) : _sim = SpringSimulation(spring, 0, 1, 0);
 
   final SpringSimulation _sim;
 

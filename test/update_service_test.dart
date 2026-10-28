@@ -46,7 +46,8 @@ void main() {
   });
 
   test('condenseNotes keeps a few clean bullet lines', () {
-    const body = "## What's Changed\n* Faster chat list by @arnav in https://github.com/x/y/pull/1\n* **Voice** notes\n\n"
+    const body =
+        "## What's Changed\n* Faster chat list by @arnav in https://github.com/x/y/pull/1\n* **Voice** notes\n\n"
         '**Full Changelog**: https://github.com/x/y/compare/v1...v2';
     expect(condenseNotes(body), ['Faster chat list', 'Voice notes']);
   });

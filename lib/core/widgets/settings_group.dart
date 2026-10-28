@@ -15,7 +15,14 @@ class SettingsGroup extends StatelessWidget {
     final p = context.palette;
     final rows = <Widget>[];
     for (var i = 0; i < children.length; i++) {
-      if (i > 0) rows.add(Padding(padding: const EdgeInsets.only(left: 58), child: Divider(height: 0.5, thickness: 0.5, color: p.separator)));
+      if (i > 0) {
+        rows.add(
+          Padding(
+            padding: const EdgeInsets.only(left: 58),
+            child: Divider(height: 0.5, thickness: 0.5, color: p.separator),
+          ),
+        );
+      }
       rows.add(children[i]);
     }
     return Container(
@@ -77,7 +84,9 @@ class SettingsRow extends StatelessWidget {
                 child: Text(label, style: context.text.bodyLarge?.copyWith(color: destructive ? p.danger : p.text)),
               ),
               if (value != null) Text(value!, style: context.text.bodyMedium?.copyWith(color: p.textMuted)),
-              if (trailing != null) trailing! else if (onTap != null && !destructive) ...[
+              if (trailing != null)
+                trailing!
+              else if (onTap != null && !destructive) ...[
                 const SizedBox(width: 6),
                 Icon(AppIcons.chevron, size: 16, color: p.textFaint),
               ],

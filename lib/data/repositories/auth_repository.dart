@@ -73,12 +73,12 @@ class AuthRepository {
   }
 
   static String _message(FirebaseAuthException e) => switch (e.code) {
-        'invalid-email' => 'Invalid email',
-        'weak-password' => 'Password too short',
-        'wrong-password' || 'invalid-credential' => 'Wrong password',
-        'too-many-requests' => 'Try again later',
-        'network-request-failed' => 'No connection',
-        'user-disabled' => 'Account disabled',
-        _ => e.message ?? 'Sign-in failed',
-      };
+    'invalid-email' => 'Invalid email',
+    'weak-password' => 'Password too short',
+    'wrong-password' || 'invalid-credential' => 'Wrong password',
+    'too-many-requests' => 'Try again later',
+    'network-request-failed' => 'No connection',
+    'user-disabled' => 'Account disabled',
+    _ => e.message ?? 'Sign-in failed',
+  };
 }

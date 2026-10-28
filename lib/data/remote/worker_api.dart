@@ -19,12 +19,12 @@ class UploadSignature {
   final String folder;
 
   factory UploadSignature.fromJson(Map<String, dynamic> j) => UploadSignature(
-        cloudName: j['cloudName'] as String,
-        apiKey: j['apiKey'] as String,
-        timestamp: (j['timestamp'] as num).toInt(),
-        signature: j['signature'] as String,
-        folder: j['folder'] as String,
-      );
+    cloudName: j['cloudName'] as String,
+    apiKey: j['apiKey'] as String,
+    timestamp: (j['timestamp'] as num).toInt(),
+    signature: j['signature'] as String,
+    folder: j['folder'] as String,
+  );
 }
 
 class WorkerUnavailable implements Exception {
@@ -37,13 +37,16 @@ class WorkerUnavailable implements Exception {
 /// the Worker verifies it and holds all secrets.
 class WorkerApi {
   WorkerApi(this._auth, {Dio? dio})
-      : _dio = dio ??
-            Dio(BaseOptions(
+    : _dio =
+          dio ??
+          Dio(
+            BaseOptions(
               baseUrl: Env.workerUrl,
               connectTimeout: const Duration(seconds: 10),
               receiveTimeout: const Duration(seconds: 20),
               contentType: Headers.jsonContentType,
-            ));
+            ),
+          );
 
   final FirebaseAuth _auth;
   final Dio _dio;
@@ -64,6 +67,10 @@ class WorkerApi {
   Future<UploadSignature> signUpload(String kind) async =>
       UploadSignature.fromJson(await _post('/v1/upload-signature', {'kind': kind}));
 
-  Future<void> notify({required String chatId, required String messageId, required String preview, required String kind}) =>
-      _post('/v1/notify', {'chatId': chatId, 'messageId': messageId, 'preview': preview, 'kind': kind});
+  Future<void> notify({
+    required String chatId,
+    required String messageId,
+    required String preview,
+    required String kind,
+  }) => _post('/v1/notify', {'chatId': chatId, 'messageId': messageId, 'preview': preview, 'kind': kind});
 }

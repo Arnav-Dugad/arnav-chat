@@ -10,10 +10,8 @@ import '../../../core/widgets/pressable.dart';
 enum AttachKind { photo, camera, video, file }
 
 /// Glass sheet whose tiles unfold with a staggered spring.
-Future<AttachKind?> showAttachmentSheet(BuildContext context) => showGlassSheet<AttachKind>(
-      context,
-      builder: (ctx) => const _AttachmentGrid(),
-    );
+Future<AttachKind?> showAttachmentSheet(BuildContext context) =>
+    showGlassSheet<AttachKind>(context, builder: (ctx) => const _AttachmentGrid());
 
 class _AttachmentGrid extends StatelessWidget {
   const _AttachmentGrid();
@@ -34,25 +32,29 @@ class _AttachmentGrid extends StatelessWidget {
         children: [
           for (final (i, (kind, icon, label, colors)) in _items.indexed)
             Pressable(
-              haptic: true,
-              semanticLabel: label,
-              onTap: () => Navigator.of(context).pop(kind),
-              child: Column(
-                children: [
-                  Container(
-                    width: 62,
-                    height: 62,
-                    decoration: ShapeDecoration(
-                      shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(Radii.md)),
-                      gradient: LinearGradient(colors: colors, begin: Alignment.topLeft, end: Alignment.bottomRight),
-                    ),
-                    child: Icon(icon, color: Colors.white, size: 28),
+                  haptic: true,
+                  semanticLabel: label,
+                  onTap: () => Navigator.of(context).pop(kind),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 62,
+                        height: 62,
+                        decoration: ShapeDecoration(
+                          shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(Radii.md)),
+                          gradient: LinearGradient(
+                            colors: colors,
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: Icon(icon, color: Colors.white, size: 28),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(label, style: context.text.labelMedium),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(label, style: context.text.labelMedium),
-                ],
-              ),
-            )
+                )
                 .animate()
                 .scale(begin: const Offset(0.3, 0.3), delay: (45 * i).ms, duration: 460.ms, curve: Curves.elasticOut)
                 .fadeIn(delay: (45 * i).ms, duration: 140.ms)

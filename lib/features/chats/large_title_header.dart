@@ -53,7 +53,9 @@ class _Delegate extends SliverPersistentHeaderDelegate {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: p.glassTint.withValues(alpha: p.glassTint.a * glass),
-                  border: Border(bottom: BorderSide(color: p.glassBorder.withValues(alpha: p.glassBorder.a * glass), width: 0.6)),
+                  border: Border(
+                    bottom: BorderSide(color: p.glassBorder.withValues(alpha: p.glassBorder.a * glass), width: 0.6),
+                  ),
                 ),
               ),
             ),

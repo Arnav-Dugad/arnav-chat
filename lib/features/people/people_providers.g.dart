@@ -13,12 +13,7 @@ part of 'people_providers.dart';
 final contactsProvider = ContactsProvider._();
 
 final class ContactsProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<List<AppUser>>,
-          List<AppUser>,
-          Stream<List<AppUser>>
-        >
+    extends $FunctionalProvider<AsyncValue<List<AppUser>>, List<AppUser>, Stream<List<AppUser>>>
     with $FutureModifier<List<AppUser>>, $StreamProvider<List<AppUser>> {
   ContactsProvider._()
     : super(
@@ -36,9 +31,7 @@ final class ContactsProvider
 
   @$internal
   @override
-  $StreamProviderElement<List<AppUser>> $createElement(
-    $ProviderPointer pointer,
-  ) => $StreamProviderElement(pointer);
+  $StreamProviderElement<List<AppUser>> $createElement($ProviderPointer pointer) => $StreamProviderElement(pointer);
 
   @override
   Stream<List<AppUser>> create(Ref ref) {
@@ -51,19 +44,16 @@ String _$contactsHash() => r'0a94cb395f546b6cdfcde2190107ad1eb643d76e';
 @ProviderFor(isContact)
 final isContactProvider = IsContactFamily._();
 
-final class IsContactProvider
-    extends $FunctionalProvider<AsyncValue<bool>, bool, Stream<bool>>
+final class IsContactProvider extends $FunctionalProvider<AsyncValue<bool>, bool, Stream<bool>>
     with $FutureModifier<bool>, $StreamProvider<bool> {
-  IsContactProvider._({
-    required IsContactFamily super.from,
-    required String super.argument,
-  }) : super(
-         retry: null,
-         name: r'isContactProvider',
-         isAutoDispose: true,
-         dependencies: null,
-         $allTransitiveDependencies: null,
-       );
+  IsContactProvider._({required IsContactFamily super.from, required String super.argument})
+    : super(
+        retry: null,
+        name: r'isContactProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$isContactHash();
@@ -77,8 +67,7 @@ final class IsContactProvider
 
   @$internal
   @override
-  $StreamProviderElement<bool> $createElement($ProviderPointer pointer) =>
-      $StreamProviderElement(pointer);
+  $StreamProviderElement<bool> $createElement($ProviderPointer pointer) => $StreamProviderElement(pointer);
 
   @override
   Stream<bool> create(Ref ref) {
@@ -99,8 +88,7 @@ final class IsContactProvider
 
 String _$isContactHash() => r'21b15e69cde38a074b697072d69225f3d97def81';
 
-final class IsContactFamily extends $Family
-    with $FunctionalFamilyOverride<Stream<bool>, String> {
+final class IsContactFamily extends $Family with $FunctionalFamilyOverride<Stream<bool>, String> {
   IsContactFamily._()
     : super(
         retry: null,
@@ -110,8 +98,7 @@ final class IsContactFamily extends $Family
         isAutoDispose: true,
       );
 
-  IsContactProvider call(String uid) =>
-      IsContactProvider._(argument: uid, from: this);
+  IsContactProvider call(String uid) => IsContactProvider._(argument: uid, from: this);
 
   @override
   String toString() => r'isContactProvider';
@@ -120,20 +107,16 @@ final class IsContactFamily extends $Family
 @ProviderFor(profile)
 final profileProvider = ProfileFamily._();
 
-final class ProfileProvider
-    extends
-        $FunctionalProvider<AsyncValue<AppUser?>, AppUser?, FutureOr<AppUser?>>
+final class ProfileProvider extends $FunctionalProvider<AsyncValue<AppUser?>, AppUser?, FutureOr<AppUser?>>
     with $FutureModifier<AppUser?>, $FutureProvider<AppUser?> {
-  ProfileProvider._({
-    required ProfileFamily super.from,
-    required String super.argument,
-  }) : super(
-         retry: null,
-         name: r'profileProvider',
-         isAutoDispose: true,
-         dependencies: null,
-         $allTransitiveDependencies: null,
-       );
+  ProfileProvider._({required ProfileFamily super.from, required String super.argument})
+    : super(
+        retry: null,
+        name: r'profileProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$profileHash();
@@ -147,8 +130,7 @@ final class ProfileProvider
 
   @$internal
   @override
-  $FutureProviderElement<AppUser?> $createElement($ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+  $FutureProviderElement<AppUser?> $createElement($ProviderPointer pointer) => $FutureProviderElement(pointer);
 
   @override
   FutureOr<AppUser?> create(Ref ref) {
@@ -169,8 +151,7 @@ final class ProfileProvider
 
 String _$profileHash() => r'281810b5befb44f41ad0fcd6993d5a6409dda09c';
 
-final class ProfileFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<AppUser?>, String> {
+final class ProfileFamily extends $Family with $FunctionalFamilyOverride<FutureOr<AppUser?>, String> {
   ProfileFamily._()
     : super(
         retry: null,
@@ -180,8 +161,7 @@ final class ProfileFamily extends $Family
         isAutoDispose: true,
       );
 
-  ProfileProvider call(String uid) =>
-      ProfileProvider._(argument: uid, from: this);
+  ProfileProvider call(String uid) => ProfileProvider._(argument: uid, from: this);
 
   @override
   String toString() => r'profileProvider';

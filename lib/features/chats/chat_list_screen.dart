@@ -52,21 +52,21 @@ class ChatListScreen extends ConsumerWidget {
           ),
           switch (chats) {
             AsyncData(:final value) when value.isEmpty => SliverFillRemaining(
-                hasScrollBody: false,
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: bottom),
-                  child: EmptyState(
-                    icon: AppIcons.chats,
-                    label: 'No chats yet',
-                    action: PillButton(
-                      label: 'Find people',
-                      icon: AppIcons.search,
-                      expand: false,
-                      onPressed: () => context.push('/find'),
-                    ),
+              hasScrollBody: false,
+              child: Padding(
+                padding: EdgeInsets.only(bottom: bottom),
+                child: EmptyState(
+                  icon: AppIcons.chats,
+                  label: 'No chats yet',
+                  action: PillButton(
+                    label: 'Find people',
+                    icon: AppIcons.search,
+                    expand: false,
+                    onPressed: () => context.push('/find'),
                   ),
                 ),
               ),
+            ),
             AsyncData(:final value) => _ChatSliverList(chats: value),
             _ => const SliverToBoxAdapter(child: ChatListSkeleton()),
           },
@@ -139,4 +139,3 @@ class _ChatSliverListState extends State<_ChatSliverList> {
     );
   }
 }
-

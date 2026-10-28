@@ -70,7 +70,9 @@ List<String> condenseNotes(String body) => body
     .split('\n')
     .map((l) => l.trim())
     .where((l) => l.startsWith('* ') || l.startsWith('- '))
-    .map((l) => l.substring(2).replaceAll(RegExp(r' by @\S+ in https://\S+'), '').replaceAll(RegExp(r'\*\*|`'), '').trim())
+    .map(
+      (l) => l.substring(2).replaceAll(RegExp(r' by @\S+ in https://\S+'), '').replaceAll(RegExp(r'\*\*|`'), '').trim(),
+    )
     .where((l) => l.isNotEmpty)
     .take(5)
     .toList();
@@ -86,8 +88,8 @@ String? checksumFor(String checksums, String fileName) {
 
 class UpdateService {
   UpdateService({Dio? dio, PackageInstaller? installer})
-      : _dio = dio ?? Dio(BaseOptions(connectTimeout: const Duration(seconds: 10))),
-        installer = installer ?? PackageInstaller();
+    : _dio = dio ?? Dio(BaseOptions(connectTimeout: const Duration(seconds: 10))),
+      installer = installer ?? PackageInstaller();
 
   final Dio _dio;
   final PackageInstaller installer;

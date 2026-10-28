@@ -12,8 +12,7 @@ part of 'appearance_controller.dart';
 @ProviderFor(AppearanceController)
 final appearanceControllerProvider = AppearanceControllerProvider._();
 
-final class AppearanceControllerProvider
-    extends $NotifierProvider<AppearanceController, Appearance> {
+final class AppearanceControllerProvider extends $NotifierProvider<AppearanceController, Appearance> {
   AppearanceControllerProvider._()
     : super(
         from: null,
@@ -34,15 +33,11 @@ final class AppearanceControllerProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(Appearance value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<Appearance>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<Appearance>(value));
   }
 }
 
-String _$appearanceControllerHash() =>
-    r'a6a31d55ec3206d6426ab68639a56183a7d45c7d';
+String _$appearanceControllerHash() => r'a6a31d55ec3206d6426ab68639a56183a7d45c7d';
 
 abstract class _$AppearanceController extends $Notifier<Appearance> {
   Appearance build();
@@ -51,13 +46,7 @@ abstract class _$AppearanceController extends $Notifier<Appearance> {
   WhenComplete runBuild() {
     final ref = this.ref as $Ref<Appearance, Appearance>;
     final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<Appearance, Appearance>,
-              Appearance,
-              Object?,
-              Object?
-            >;
+        ref.element as $ClassProviderElement<AnyNotifier<Appearance, Appearance>, Appearance, Object?, Object?>;
     return element.handleCreate(ref, build);
   }
 }

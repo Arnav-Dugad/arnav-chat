@@ -20,31 +20,33 @@ class EmptyState extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            width: 112,
-            height: 112,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  width: 112,
-                  height: 112,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(colors: [p.primary.withValues(alpha: 0.18), p.primary.withValues(alpha: 0)]),
-                  ),
+                width: 112,
+                height: 112,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 112,
+                      height: 112,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [p.primary.withValues(alpha: 0.18), p.primary.withValues(alpha: 0)],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 68,
+                      height: 68,
+                      decoration: ShapeDecoration(
+                        shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(Radii.md)),
+                        gradient: p.accentGradient,
+                      ),
+                      child: Icon(icon, color: Colors.white, size: 32),
+                    ),
+                  ],
                 ),
-                Container(
-                  width: 68,
-                  height: 68,
-                  decoration: ShapeDecoration(
-                    shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(Radii.md)),
-                    gradient: p.accentGradient,
-                  ),
-                  child: Icon(icon, color: Colors.white, size: 32),
-                ),
-              ],
-            ),
-          )
+              )
               .animate(onPlay: (c) => c.repeat(reverse: true))
               .moveY(begin: 0, end: -6, duration: 1800.ms, curve: Curves.easeInOut),
           const SizedBox(height: Gaps.x4),

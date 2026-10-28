@@ -10,18 +10,19 @@ class FirestoreRefs {
   DocumentReference<Map<String, dynamic>> user(String uid) => users.doc(uid);
   DocumentReference<Map<String, dynamic>> userPrivate(String uid) => user(uid).collection('private').doc('meta');
   CollectionReference<Map<String, dynamic>> contacts(String uid) => user(uid).collection('contacts');
-  DocumentReference<Map<String, dynamic>> username(String handle) => fs.collection('usernames').doc(handle.toLowerCase());
+  DocumentReference<Map<String, dynamic>> username(String handle) =>
+      fs.collection('usernames').doc(handle.toLowerCase());
 
   CollectionReference<Map<String, dynamic>> get chats => fs.collection('chats');
   DocumentReference<Map<String, dynamic>> chat(String id) => chats.doc(id);
   CollectionReference<Map<String, dynamic>> messages(String chatId) => chat(chatId).collection('messages');
 }
 
-extension TimestampX on Object? {
-  /// Reads a Firestore Timestamp (or millis) as epoch milliseconds.
-  int? get asMillis => switch (this) {
-        Timestamp t => t.millisecondsSinceEpoch,
-        int i => i,
-        _ => null,
-      };
-}
+/// Reads a Firestore Timestamp (or millis) as epoch milliseconds.
+/// A function, not an extension: map values are dynamic, and extension
+/// members are not dispatched on dynamic receivers.
+int? millisOf(Object? v) => switch (v) {
+  final Timestamp t => t.millisecondsSinceEpoch,
+  final int i => i,
+  _ => null,
+};

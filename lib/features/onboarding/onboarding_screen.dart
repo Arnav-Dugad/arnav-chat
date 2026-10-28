@@ -43,9 +43,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final user = ref.read(authStateProvider).value;
     _name.text = user?.displayName ?? '';
     _photoUrl = user?.photoURL;
-    final seed = (user?.displayName ?? user?.email?.split('@').first ?? '')
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9_]'), '');
+    final seed = (user?.displayName ?? user?.email?.split('@').first ?? '').toLowerCase().replaceAll(
+      RegExp(r'[^a-z0-9_]'),
+      '',
+    );
     if (seed.length >= 3) {
       _username.text = seed.length > 20 ? seed.substring(0, 20) : seed;
       _check(_username.text);
@@ -84,7 +85,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Future<void> _save() async {
     setState(() => _saving = true);
     try {
-      await ref.read(userRepositoryProvider).createProfile(
+      await ref
+          .read(userRepositoryProvider)
+          .createProfile(
             username: _username.text,
             displayName: _name.text,
             bio: _bio.text.isEmpty ? null : _bio.text,
@@ -162,14 +165,22 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                               ),
                             ),
                             const SizedBox(height: Gaps.x3),
-                            PillField(controller: _bio, hint: 'Bio', icon: AppIcons.sparkle, maxLength: 140, multiline: true),
+                            PillField(
+                              controller: _bio,
+                              hint: 'Bio',
+                              icon: AppIcons.sparkle,
+                              maxLength: 140,
+                              multiline: true,
+                            ),
                           ],
                         ),
                       ).animate().fadeIn(delay: 120.ms).moveY(begin: 20, end: 0, curve: Curves.easeOutCubic),
                       const SizedBox(height: Gaps.x6),
-                      PillButton(label: 'Done', busy: _saving, onPressed: _valid ? _save : null)
-                          .animate()
-                          .fadeIn(delay: 220.ms),
+                      PillButton(
+                        label: 'Done',
+                        busy: _saving,
+                        onPressed: _valid ? _save : null,
+                      ).animate().fadeIn(delay: 220.ms),
                     ],
                   ),
                 ),

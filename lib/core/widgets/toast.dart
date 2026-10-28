@@ -10,17 +10,19 @@ void showToast(BuildContext context, String message, {bool error = false, IconDa
   if (m == null) return;
   m
     ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(
-      duration: const Duration(milliseconds: 2200),
-      margin: const EdgeInsets.fromLTRB(48, 0, 48, 24),
-      content: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon ?? (error ? AppIcons.warning : AppIcons.check), color: Colors.white, size: 18),
-          const SizedBox(width: 8),
-          Flexible(child: Text(message, textAlign: TextAlign.center)),
-        ],
+    ..showSnackBar(
+      SnackBar(
+        duration: const Duration(milliseconds: 2200),
+        margin: const EdgeInsets.fromLTRB(48, 0, 48, 24),
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon ?? (error ? AppIcons.warning : AppIcons.check), color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Flexible(child: Text(message, textAlign: TextAlign.center)),
+          ],
+        ),
       ),
-    ));
+    );
 }

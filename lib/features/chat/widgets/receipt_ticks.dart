@@ -31,7 +31,10 @@ class ReceiptTicks extends StatelessWidget {
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 260),
         switchInCurve: Curves.easeOutBack,
-        transitionBuilder: (child, a) => ScaleTransition(scale: a, child: FadeTransition(opacity: a, child: child)),
+        transitionBuilder: (child, a) => ScaleTransition(
+          scale: a,
+          child: FadeTransition(opacity: a, child: child),
+        ),
         child: Icon(icon, key: ValueKey(receipt), size: size, color: color),
       ),
     );

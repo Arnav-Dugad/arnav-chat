@@ -68,13 +68,7 @@ class _FindPeopleScreenState extends ConsumerState<FindPeopleScreen> {
           SizedBox(height: top + Gaps.x2),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Gaps.x4),
-            child: PillField(
-              controller: _q,
-              hint: '@username',
-              icon: AppIcons.at,
-              autofocus: true,
-              onChanged: _search,
-            ),
+            child: PillField(controller: _q, hint: '@username', icon: AppIcons.at, autofocus: true, onChanged: _search),
           ),
           const SizedBox(height: Gaps.x2),
           Expanded(
@@ -83,16 +77,16 @@ class _FindPeopleScreenState extends ConsumerState<FindPeopleScreen> {
               child: _loading && _results == null
                   ? const ChatListSkeleton(count: 4)
                   : _results == null
-                      ? const EmptyState(icon: AppIcons.search, label: 'Search people')
-                      : _results!.isEmpty
-                          ? const EmptyState(icon: AppIcons.user, label: 'No one found')
-                          : ListView.builder(
-                              itemCount: _results!.length,
-                              itemBuilder: (context, i) => UserRow(
-                                user: _results![i],
-                                onTap: () => context.push('/user/${_results![i].uid}'),
-                              ).animate().fadeIn(delay: (i * 25).ms).moveX(begin: 10, end: 0),
-                            ),
+                  ? const EmptyState(icon: AppIcons.search, label: 'Search people')
+                  : _results!.isEmpty
+                  ? const EmptyState(icon: AppIcons.user, label: 'No one found')
+                  : ListView.builder(
+                      itemCount: _results!.length,
+                      itemBuilder: (context, i) => UserRow(
+                        user: _results![i],
+                        onTap: () => context.push('/user/${_results![i].uid}'),
+                      ).animate().fadeIn(delay: (i * 25).ms).moveX(begin: 10, end: 0),
+                    ),
             ),
           ),
         ],

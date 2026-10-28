@@ -38,14 +38,11 @@ class PresenceService {
   }
 
   Stream<Presence> watch(String uid) => _db.ref('status/$uid').onValue.map((e) {
-        final v = e.snapshot.value;
-        if (v is! Map) return Presence.unknown;
-        final ts = v['lastSeen'];
-        return Presence(
-          online: v['online'] == true,
-          lastSeen: ts is int ? DateTime.fromMillisecondsSinceEpoch(ts) : null,
-        );
-      });
+    final v = e.snapshot.value;
+    if (v is! Map) return Presence.unknown;
+    final ts = v['lastSeen'];
+    return Presence(online: v['online'] == true, lastSeen: ts is int ? DateTime.fromMillisecondsSinceEpoch(ts) : null);
+  });
 
   DatabaseReference _typing(String chatId, String uid) => _db.ref('typing/$chatId/$uid');
 

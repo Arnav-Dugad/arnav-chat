@@ -35,7 +35,10 @@ Future<T?> showGlassSheet<T>(
             Container(
               width: 36,
               height: 5,
-              decoration: BoxDecoration(color: ctx.palette.textFaint.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(3)),
+              decoration: BoxDecoration(
+                color: ctx.palette.textFaint.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(3),
+              ),
             ),
             Flexible(child: builder(ctx)),
           ],

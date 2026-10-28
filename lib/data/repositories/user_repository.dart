@@ -30,9 +30,20 @@ class UserRepository {
 
   /// Atomically claims the username and creates the profile. Rules reject the
   /// batch if the username document already exists.
-  Future<void> createProfile({required String username, required String displayName, String? bio, String? photoUrl}) async {
+  Future<void> createProfile({
+    required String username,
+    required String displayName,
+    String? bio,
+    String? photoUrl,
+  }) async {
     final handle = normalizeUsername(username);
-    final user = AppUser(uid: _uid, username: handle, displayName: displayName.trim(), bio: bio?.trim(), photoUrl: photoUrl);
+    final user = AppUser(
+      uid: _uid,
+      username: handle,
+      displayName: displayName.trim(),
+      bio: bio?.trim(),
+      photoUrl: photoUrl,
+    );
     final batch = _refs.fs.batch()
       ..set(_refs.username(handle), {'uid': _uid, 'createdAt': FieldValue.serverTimestamp()})
       ..set(_refs.user(_uid), {...user.toMap(), 'createdAt': FieldValue.serverTimestamp()});
@@ -41,11 +52,7 @@ class UserRepository {
   }
 
   Future<void> updateProfile({String? displayName, String? bio, String? photoUrl}) async {
-    await _refs.user(_uid).update({
-      'displayName': ?displayName?.trim(),
-      'bio': ?bio?.trim(),
-      'photoUrl': ?photoUrl,
-    });
+    await _refs.user(_uid).update({'displayName': ?displayName?.trim(), 'bio': ?bio?.trim(), 'photoUrl': ?photoUrl});
   }
 
   Future<void> updatePrivacy(PrivacySettings privacy) => _refs.user(_uid).update({'privacy': privacy.toMap()});
@@ -71,40 +78,44 @@ class UserRepository {
   }
 
   Future<void> addFcmToken(String token) => _refs.userPrivate(_uid).set({
-        'fcmTokens': FieldValue.arrayUnion([token]),
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+    'fcmTokens': FieldValue.arrayUnion([token]),
+    'updatedAt': FieldValue.serverTimestamp(),
+  }, SetOptions(merge: true));
 
   Future<void> removeFcmToken(String token) => _refs.userPrivate(_uid).set({
-        'fcmTokens': FieldValue.arrayRemove([token]),
-      }, SetOptions(merge: true));
+    'fcmTokens': FieldValue.arrayRemove([token]),
+  }, SetOptions(merge: true));
 
   // ---------- others ----------
 
-  Future<void> cache(AppUser u) => _db.into(_db.users).insertOnConflictUpdate(UsersCompanion.insert(
-        uid: u.uid,
-        username: u.username,
-        displayName: u.displayName,
-        photoUrl: Value(u.photoUrl),
-        bio: Value(u.bio),
-        privacyJson: Value(jsonEncode(u.privacy.toMap())),
-        fetchedAt: DateTime.now().millisecondsSinceEpoch,
-      ));
+  Future<void> cache(AppUser u) => _db
+      .into(_db.users)
+      .insertOnConflictUpdate(
+        UsersCompanion.insert(
+          uid: u.uid,
+          username: u.username,
+          displayName: u.displayName,
+          photoUrl: Value(u.photoUrl),
+          bio: Value(u.bio),
+          privacyJson: Value(jsonEncode(u.privacy.toMap())),
+          fetchedAt: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
 
   static AppUser fromRow(UserRow r) => AppUser(
-        uid: r.uid,
-        username: r.username,
-        displayName: r.displayName,
-        photoUrl: r.photoUrl,
-        bio: r.bio,
-        privacy: PrivacySettings.fromMap(jsonDecode(r.privacyJson) as Map<String, dynamic>),
-      );
+    uid: r.uid,
+    username: r.username,
+    displayName: r.displayName,
+    photoUrl: r.photoUrl,
+    bio: r.bio,
+    privacy: PrivacySettings.fromMap(jsonDecode(r.privacyJson) as Map<String, dynamic>),
+  );
 
   /// Cached profile, refreshed from Firestore when older than the TTL.
   Future<AppUser?> get(String uid, {bool refresh = false}) async {
     final row = await (_db.select(_db.users)..where((t) => t.uid.equals(uid))).getSingleOrNull();
-    final fresh = row != null &&
-        DateTime.now().difference(DateTime.fromMillisecondsSinceEpoch(row.fetchedAt)) < _profileTtl;
+    final fresh =
+        row != null && DateTime.now().difference(DateTime.fromMillisecondsSinceEpoch(row.fetchedAt)) < _profileTtl;
     if (row != null && fresh && !refresh) return fromRow(row);
     try {
       final snap = await _refs.user(uid).get();
@@ -118,9 +129,9 @@ class UserRepository {
     }
   }
 
-  Stream<AppUser?> watchCached(String uid) => (_db.select(_db.users)..where((t) => t.uid.equals(uid)))
-      .watchSingleOrNull()
-      .map((r) => r == null ? null : fromRow(r));
+  Stream<AppUser?> watchCached(String uid) => (_db.select(
+    _db.users,
+  )..where((t) => t.uid.equals(uid))).watchSingleOrNull().map((r) => r == null ? null : fromRow(r));
 
   Future<AppUser?> byUsername(String handle) async {
     final snap = await _refs.username(normalizeUsername(handle)).get();
@@ -147,9 +158,9 @@ class UserRepository {
   // ---------- contacts ----------
 
   Future<void> addContact(String uid) async {
-    await _db.into(_db.contacts).insertOnConflictUpdate(
-          ContactsCompanion.insert(uid: uid, addedAt: DateTime.now().millisecondsSinceEpoch),
-        );
+    await _db
+        .into(_db.contacts)
+        .insertOnConflictUpdate(ContactsCompanion.insert(uid: uid, addedAt: DateTime.now().millisecondsSinceEpoch));
     await _refs.contacts(_uid).doc(uid).set({'addedAt': FieldValue.serverTimestamp()});
   }
 
@@ -172,10 +183,14 @@ class UserRepository {
     if (await _db.getMeta('contactsSynced') == '1') return;
     final snap = await _refs.contacts(_uid).get();
     for (final d in snap.docs) {
-      await _db.into(_db.contacts).insertOnConflictUpdate(ContactsCompanion.insert(
-            uid: d.id,
-            addedAt: (d.data()['addedAt'] as Timestamp?)?.millisecondsSinceEpoch ?? 0,
-          ));
+      await _db
+          .into(_db.contacts)
+          .insertOnConflictUpdate(
+            ContactsCompanion.insert(
+              uid: d.id,
+              addedAt: (d.data()['addedAt'] as Timestamp?)?.millisecondsSinceEpoch ?? 0,
+            ),
+          );
       await get(d.id);
     }
     await _db.setMeta('contactsSynced', '1');

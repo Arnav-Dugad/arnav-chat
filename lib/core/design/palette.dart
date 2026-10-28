@@ -75,11 +75,8 @@ class Palette extends ThemeExtension<Palette> {
   bool get isDark => brightness == Brightness.dark;
   Color get primary => accent.base;
 
-  LinearGradient get accentGradient => LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: accent.gradient,
-      );
+  LinearGradient get accentGradient =>
+      LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: accent.gradient);
 
   @override
   Palette copyWith({AccentColor? accent}) => Palette.of(brightness, accent ?? this.accent);

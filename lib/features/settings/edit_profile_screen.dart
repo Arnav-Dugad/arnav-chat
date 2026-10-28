@@ -55,9 +55,20 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       body: ListView(
         padding: EdgeInsets.fromLTRB(Gaps.x6, MediaQuery.paddingOf(context).top + 80, Gaps.x6, Gaps.x8),
         children: [
-          Center(child: AvatarPicker(url: _photo, name: _name.text, size: 112, onUploaded: (u) => setState(() => _photo = u))),
+          Center(
+            child: AvatarPicker(
+              url: _photo,
+              name: _name.text,
+              size: 112,
+              onUploaded: (u) => setState(() => _photo = u),
+            ),
+          ),
           const SizedBox(height: Gaps.x3),
-          Text(_me.handle, textAlign: TextAlign.center, style: context.text.bodyMedium?.copyWith(color: context.palette.textMuted)),
+          Text(
+            _me.handle,
+            textAlign: TextAlign.center,
+            style: context.text.bodyMedium?.copyWith(color: context.palette.textMuted),
+          ),
           const SizedBox(height: Gaps.x6),
           PillField(controller: _name, hint: 'Name', icon: AppIcons.user, maxLength: 40),
           const SizedBox(height: Gaps.x3),

@@ -10,12 +10,12 @@ import '../../chats/chat_providers.dart';
 
 /// Pick a chat to forward to. Returns the chat id.
 Future<String?> showForwardSheet(BuildContext context) => showModalBottomSheet<String>(
-      context: context,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => const _ForwardSheet(),
-    );
+  context: context,
+  useRootNavigator: true,
+  isScrollControlled: true,
+  backgroundColor: Colors.transparent,
+  builder: (_) => const _ForwardSheet(),
+);
 
 class _ForwardSheet extends ConsumerWidget {
   const _ForwardSheet();
@@ -31,7 +31,7 @@ class _ForwardSheet extends ConsumerWidget {
         margin: const EdgeInsets.symmetric(horizontal: Gaps.x2),
         decoration: ShapeDecoration(
           color: p.surface,
-          shape: RoundedSuperellipseBorder(borderRadius: const BorderRadius.vertical(top: Radius.circular(Radii.xl))),
+          shape: const RoundedSuperellipseBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(Radii.xl))),
         ),
         child: ListView.builder(
           controller: scroll,
@@ -43,11 +43,13 @@ class _ForwardSheet extends ConsumerWidget {
               onTap: () => Navigator.of(context).pop(c.id),
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: Gaps.x5, vertical: 8),
-                child: Row(children: [
-                  Avatar(name: c.title('…'), url: c.peer?.photoUrl, size: 44),
-                  const SizedBox(width: Gaps.x3),
-                  Expanded(child: Text(c.title('…'), style: context.text.titleSmall)),
-                ]),
+                child: Row(
+                  children: [
+                    Avatar(name: c.title('…'), url: c.peer?.photoUrl, size: 44),
+                    const SizedBox(width: Gaps.x3),
+                    Expanded(child: Text(c.title('…'), style: context.text.titleSmall)),
+                  ],
+                ),
               ),
             ).animate().fadeIn(delay: (i * 25).ms).moveX(begin: 12, end: 0);
           },

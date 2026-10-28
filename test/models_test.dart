@@ -99,7 +99,8 @@ void main() {
     });
 
     test('parses OpenGraph tags in either attribute order', () {
-      const html = '<meta property="og:title" content="Flutter &amp; Dart">'
+      const html =
+          '<meta property="og:title" content="Flutter &amp; Dart">'
           '<meta content="Build apps" name="description">'
           '<meta property="og:image" content="/img.png">';
       final p = parseOpenGraph('https://flutter.dev/x', html)!;

@@ -138,11 +138,11 @@ MessageWriter messageWriter(Ref ref) => MessageWriter(ref.watch(firestoreRefsPro
 
 @Riverpod(keepAlive: true)
 MessageRepository messageRepository(Ref ref) => MessageRepository(
-      ref.watch(firestoreRefsProvider),
-      ref.watch(appDatabaseProvider),
-      ref.watch(messageWriterProvider),
-      _uid(ref),
-    );
+  ref.watch(firestoreRefsProvider),
+  ref.watch(appDatabaseProvider),
+  ref.watch(messageWriterProvider),
+  _uid(ref),
+);
 
 @Riverpod(keepAlive: true)
 MediaUploader mediaUploader(Ref ref) => MediaUploader(ref.watch(workerApiProvider));

@@ -44,6 +44,12 @@
                 android:resource="@xml/update_paths" />
         </provider>
 
+        <!-- Delivers notification actions (inline Reply / Mark read) to Dart,
+             also when the app process is not running. -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
+            android:exported="false" />
+
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="messages" />

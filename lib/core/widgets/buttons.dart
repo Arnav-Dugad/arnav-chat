@@ -51,20 +51,43 @@ class PillButton extends StatelessWidget {
 
     final Widget body = switch (style) {
       PillStyle.primary => DecoratedBox(
-          decoration: ShapeDecoration(
-            shape: const StadiumBorder(),
-            gradient: p.accentGradient,
-            shadows: [
-              BoxShadow(color: p.primary.withValues(alpha: 0.32), blurRadius: 22, offset: const Offset(0, 8), spreadRadius: -6),
-            ],
+        decoration: ShapeDecoration(
+          shape: const StadiumBorder(),
+          gradient: p.accentGradient,
+          shadows: [
+            BoxShadow(
+              color: p.primary.withValues(alpha: 0.32),
+              blurRadius: 22,
+              offset: const Offset(0, 8),
+              spreadRadius: -6,
+            ),
+          ],
+        ),
+        child: SizedBox(
+          height: height,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: Gaps.x6),
+            child: content,
           ),
-          child: SizedBox(height: height, child: Padding(padding: const EdgeInsets.symmetric(horizontal: Gaps.x6), child: content)),
         ),
+      ),
       PillStyle.secondary => Glass(
-          pill: true,
-          child: SizedBox(height: height, child: Padding(padding: const EdgeInsets.symmetric(horizontal: Gaps.x6), child: content)),
+        pill: true,
+        child: SizedBox(
+          height: height,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: Gaps.x6),
+            child: content,
+          ),
         ),
-      _ => SizedBox(height: height, child: Padding(padding: const EdgeInsets.symmetric(horizontal: Gaps.x4), child: content)),
+      ),
+      _ => SizedBox(
+        height: height,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: Gaps.x4),
+          child: content,
+        ),
+      ),
     };
 
     return Semantics(
@@ -83,7 +106,14 @@ class PillButton extends StatelessWidget {
 
 /// Round glass icon button (app bar actions, input bar).
 class GlassIconButton extends StatelessWidget {
-  const GlassIconButton({super.key, required this.icon, required this.onPressed, required this.label, this.size = 40, this.color});
+  const GlassIconButton({
+    super.key,
+    required this.icon,
+    required this.onPressed,
+    required this.label,
+    this.size = 40,
+    this.color,
+  });
 
   final IconData icon;
   final VoidCallback? onPressed;
@@ -93,13 +123,13 @@ class GlassIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Pressable(
-        onTap: onPressed,
-        haptic: true,
-        semanticLabel: label,
-        scale: 0.9,
-        child: SizedBox.square(
-          dimension: size,
-          child: Icon(icon, size: size * 0.55, color: color ?? context.palette.text),
-        ),
-      );
+    onTap: onPressed,
+    haptic: true,
+    semanticLabel: label,
+    scale: 0.9,
+    child: SizedBox.square(
+      dimension: size,
+      child: Icon(icon, size: size * 0.55, color: color ?? context.palette.text),
+    ),
+  );
 }

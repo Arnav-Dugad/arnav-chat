@@ -73,77 +73,80 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                           .animate(onPlay: (c) => c.repeat(reverse: true))
                           .moveY(begin: 0, end: -5, duration: 2200.ms, curve: Curves.easeInOut),
                       const SizedBox(height: Gaps.x5),
-                      Text('Arnav Chat', style: context.text.displaySmall)
-                          .animate()
-                          .fadeIn(delay: 120.ms)
-                          .moveY(begin: 10, end: 0, curve: Curves.easeOutCubic),
+                      Text(
+                        'Arnav Chat',
+                        style: context.text.displaySmall,
+                      ).animate().fadeIn(delay: 120.ms).moveY(begin: 10, end: 0, curve: Curves.easeOutCubic),
                       const SizedBox(height: Gaps.x10),
                       Glass(
-                        radius: Radii.xl,
-                        padding: const EdgeInsets.all(Gaps.x4),
-                        child: AnimatedSize(
-                          duration: const Duration(milliseconds: 320),
-                          curve: Curves.easeOutCubic,
-                          alignment: Alignment.topCenter,
-                          child: Column(
-                            children: [
-                              PillButton(
-                                label: 'Continue with Google',
-                                icon: AppIcons.google,
-                                style: PillStyle.primary,
-                                busy: _busy == 'google',
-                                onPressed: _busy != null ? null : () => _run('google', auth.signInWithGoogle),
+                            radius: Radii.xl,
+                            padding: const EdgeInsets.all(Gaps.x4),
+                            child: AnimatedSize(
+                              duration: const Duration(milliseconds: 320),
+                              curve: Curves.easeOutCubic,
+                              alignment: Alignment.topCenter,
+                              child: Column(
+                                children: [
+                                  PillButton(
+                                    label: 'Continue with Google',
+                                    icon: AppIcons.google,
+                                    style: PillStyle.primary,
+                                    busy: _busy == 'google',
+                                    onPressed: _busy != null ? null : () => _run('google', auth.signInWithGoogle),
+                                  ),
+                                  const SizedBox(height: Gaps.x3),
+                                  if (!_emailMode)
+                                    PillButton(
+                                      label: 'Email',
+                                      icon: AppIcons.mail,
+                                      style: PillStyle.ghost,
+                                      onPressed: () => setState(() => _emailMode = true),
+                                    )
+                                  else ...[
+                                    PillField(
+                                      controller: _email,
+                                      hint: 'Email',
+                                      icon: AppIcons.mail,
+                                      keyboardType: TextInputType.emailAddress,
+                                      textInputAction: TextInputAction.next,
+                                      autofillHints: const [AutofillHints.email],
+                                      autofocus: true,
+                                    ),
+                                    const SizedBox(height: Gaps.x3),
+                                    PillField(
+                                      controller: _password,
+                                      hint: 'Password',
+                                      icon: AppIcons.lock,
+                                      obscure: true,
+                                      textInputAction: TextInputAction.done,
+                                      autofillHints: const [AutofillHints.password],
+                                      onSubmitted: (_) => _submitEmail(auth),
+                                    ),
+                                    const SizedBox(height: Gaps.x3),
+                                    PillButton(
+                                      label: 'Continue',
+                                      style: PillStyle.secondary,
+                                      busy: _busy == 'email',
+                                      onPressed: _busy != null ? null : () => _submitEmail(auth),
+                                    ),
+                                    PillButton(
+                                      label: 'Forgot password',
+                                      style: PillStyle.ghost,
+                                      height: 44,
+                                      onPressed: () async {
+                                        if (_email.text.trim().isEmpty) return showToast(context, 'Enter email');
+                                        await auth.sendPasswordReset(_email.text);
+                                        if (context.mounted) showToast(context, 'Reset link sent');
+                                      },
+                                    ),
+                                  ],
+                                ],
                               ),
-                              const SizedBox(height: Gaps.x3),
-                              if (!_emailMode)
-                                PillButton(
-                                  label: 'Email',
-                                  icon: AppIcons.mail,
-                                  style: PillStyle.ghost,
-                                  onPressed: () => setState(() => _emailMode = true),
-                                )
-                              else ...[
-                                PillField(
-                                  controller: _email,
-                                  hint: 'Email',
-                                  icon: AppIcons.mail,
-                                  keyboardType: TextInputType.emailAddress,
-                                  textInputAction: TextInputAction.next,
-                                  autofillHints: const [AutofillHints.email],
-                                  autofocus: true,
-                                ),
-                                const SizedBox(height: Gaps.x3),
-                                PillField(
-                                  controller: _password,
-                                  hint: 'Password',
-                                  icon: AppIcons.lock,
-                                  obscure: true,
-                                  textInputAction: TextInputAction.done,
-                                  autofillHints: const [AutofillHints.password],
-                                  onSubmitted: (_) => _submitEmail(auth),
-                                ),
-                                const SizedBox(height: Gaps.x3),
-                                PillButton(
-                                  label: 'Continue',
-                                  style: PillStyle.secondary,
-                                  busy: _busy == 'email',
-                                  onPressed: _busy != null ? null : () => _submitEmail(auth),
-                                ),
-                                PillButton(
-                                  label: 'Forgot password',
-                                  style: PillStyle.ghost,
-                                  height: 44,
-                                  onPressed: () async {
-                                    if (_email.text.trim().isEmpty) return showToast(context, 'Enter email');
-                                    await auth.sendPasswordReset(_email.text);
-                                    if (context.mounted) showToast(context, 'Reset link sent');
-                                  },
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ).animate().fadeIn(delay: 220.ms, duration: 400.ms).moveY(begin: 24, end: 0, curve: Curves.easeOutCubic),
+                            ),
+                          )
+                          .animate()
+                          .fadeIn(delay: 220.ms, duration: 400.ms)
+                          .moveY(begin: 24, end: 0, curve: Curves.easeOutCubic),
                       const SizedBox(height: Gaps.x6),
                       Icon(AppIcons.shield, size: 18, color: p.textFaint).animate().fadeIn(delay: 500.ms),
                     ],

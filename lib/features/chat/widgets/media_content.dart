@@ -75,13 +75,15 @@ class ImageContent extends StatelessWidget {
       image = Stack(
         fit: StackFit.expand,
         children: [
-          if (media.blurhash != null) BlurHash(hash: media.blurhash!, imageFit: BoxFit.cover, decodingWidth: 24, decodingHeight: 24),
+          if (media.blurhash != null)
+            BlurHash(hash: media.blurhash!, imageFit: BoxFit.cover, decodingWidth: 24, decodingHeight: 24),
           CachedNetworkImage(
             imageUrl: MediaUrl.fit(media.url, px),
             memCacheWidth: px,
             fit: BoxFit.cover,
             fadeInDuration: const Duration(milliseconds: 320),
-            placeholder: (_, _) => media.blurhash == null ? ColoredBox(color: context.palette.surfaceRaised) : const SizedBox.shrink(),
+            placeholder: (_, _) =>
+                media.blurhash == null ? ColoredBox(color: context.palette.surfaceRaised) : const SizedBox.shrink(),
           ),
         ],
       );
@@ -98,7 +100,13 @@ class ImageContent extends StatelessWidget {
             borderRadius: radius,
             child: Hero(
               tag: hero,
-              child: Stack(fit: StackFit.expand, children: [image, _UploadOverlay(message: message)]),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  image,
+                  _UploadOverlay(message: message),
+                ],
+              ),
             ),
           ),
         ),
@@ -150,7 +158,10 @@ class VideoContent extends StatelessWidget {
                         pill: true,
                         tint: Colors.black.withValues(alpha: 0.3),
                         border: false,
-                        child: const SizedBox.square(dimension: 52, child: Icon(AppIcons.play, color: Colors.white, size: 24)),
+                        child: const SizedBox.square(
+                          dimension: 52,
+                          child: Icon(AppIcons.play, color: Colors.white, size: 24),
+                        ),
                       ),
                     ),
                   if (media.durationMs != null)
@@ -247,7 +258,12 @@ class _VoiceContentState extends ConsumerState<VoiceContent> {
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 180),
                 transitionBuilder: (c, a) => ScaleTransition(scale: a, child: c),
-                child: Icon(_playing ? AppIcons.pause : AppIcons.play, key: ValueKey(_playing), color: Colors.white, size: 18),
+                child: Icon(
+                  _playing ? AppIcons.pause : AppIcons.play,
+                  key: ValueKey(_playing),
+                  color: Colors.white,
+                  size: 18,
+                ),
               ),
             ),
           ),
@@ -257,7 +273,9 @@ class _VoiceContentState extends ConsumerState<VoiceContent> {
               stream: _player?.positionStream,
               builder: (context, snap) {
                 final pos = snap.data ?? Duration.zero;
-                final frac = total.inMilliseconds == 0 ? 0.0 : (pos.inMilliseconds / total.inMilliseconds).clamp(0.0, 1.0);
+                final frac = total.inMilliseconds == 0
+                    ? 0.0
+                    : (pos.inMilliseconds / total.inMilliseconds).clamp(0.0, 1.0);
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -272,7 +290,12 @@ class _VoiceContentState extends ConsumerState<VoiceContent> {
                     const SizedBox(height: 2),
                     Text(
                       TimeFormat.duration(_playing || pos > Duration.zero ? total - pos : total),
-                      style: TextStyle(color: dim, fontSize: 11.5, fontWeight: FontWeight.w600, fontFeatures: const [FontFeature.tabularFigures()]),
+                      style: TextStyle(
+                        color: dim,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
                     ),
                   ],
                 );
@@ -353,7 +376,12 @@ class FileContent extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(media.name ?? 'File', maxLines: 1, overflow: TextOverflow.ellipsis, style: context.text.titleSmall?.copyWith(color: fg)),
+                  Text(
+                    media.name ?? 'File',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.text.titleSmall?.copyWith(color: fg),
+                  ),
                   Text(_size(media.bytes), style: context.text.labelMedium?.copyWith(color: sub)),
                 ],
               ),
@@ -393,7 +421,11 @@ class LinkCard extends StatelessWidget {
             if (link.imageUrl != null)
               AspectRatio(
                 aspectRatio: 1.91,
-                child: CachedNetworkImage(imageUrl: link.imageUrl!, fit: BoxFit.cover, errorWidget: (_, _, _) => const SizedBox.shrink()),
+                child: CachedNetworkImage(
+                  imageUrl: link.imageUrl!,
+                  fit: BoxFit.cover,
+                  errorWidget: (_, _, _) => const SizedBox.shrink(),
+                ),
               ),
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
@@ -402,9 +434,19 @@ class LinkCard extends StatelessWidget {
                 children: [
                   if (link.siteName != null) Text(link.siteName!, style: context.text.labelSmall?.copyWith(color: sub)),
                   if (link.title != null)
-                    Text(link.title!, maxLines: 2, overflow: TextOverflow.ellipsis, style: context.text.titleSmall?.copyWith(color: fg)),
+                    Text(
+                      link.title!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.text.titleSmall?.copyWith(color: fg),
+                    ),
                   if (link.description != null)
-                    Text(link.description!, maxLines: 2, overflow: TextOverflow.ellipsis, style: context.text.bodySmall?.copyWith(color: sub)),
+                    Text(
+                      link.description!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.text.bodySmall?.copyWith(color: sub),
+                    ),
                 ],
               ),
             ),
@@ -454,11 +496,17 @@ class _LinkifiedTextState extends State<LinkifiedText> {
       final url = m.group(0)!;
       final r = TapGestureRecognizer()..onTap = () => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
       _recognizers.add(r);
-      spans.add(TextSpan(
-        text: url,
-        recognizer: r,
-        style: TextStyle(color: widget.linkColor, decoration: TextDecoration.underline, decorationColor: widget.linkColor),
-      ));
+      spans.add(
+        TextSpan(
+          text: url,
+          recognizer: r,
+          style: TextStyle(
+            color: widget.linkColor,
+            decoration: TextDecoration.underline,
+            decorationColor: widget.linkColor,
+          ),
+        ),
+      );
       last = m.end;
     }
     if (last < widget.text.length) spans.add(TextSpan(text: widget.text.substring(last)));

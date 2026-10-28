@@ -12,13 +12,7 @@ part of 'providers.dart';
 @ProviderFor(sharedPrefs)
 final sharedPrefsProvider = SharedPrefsProvider._();
 
-final class SharedPrefsProvider
-    extends
-        $FunctionalProvider<
-          SharedPreferences,
-          SharedPreferences,
-          SharedPreferences
-        >
+final class SharedPrefsProvider extends $FunctionalProvider<SharedPreferences, SharedPreferences, SharedPreferences>
     with $Provider<SharedPreferences> {
   SharedPrefsProvider._()
     : super(
@@ -36,9 +30,7 @@ final class SharedPrefsProvider
 
   @$internal
   @override
-  $ProviderElement<SharedPreferences> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
+  $ProviderElement<SharedPreferences> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   SharedPreferences create(Ref ref) {
@@ -47,10 +39,7 @@ final class SharedPrefsProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(SharedPreferences value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<SharedPreferences>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<SharedPreferences>(value));
   }
 }
 
@@ -59,8 +48,7 @@ String _$sharedPrefsHash() => r'493b07928351fe69424e2452b19b1c6d17324fca';
 @ProviderFor(firebaseAuth)
 final firebaseAuthProvider = FirebaseAuthProvider._();
 
-final class FirebaseAuthProvider
-    extends $FunctionalProvider<FirebaseAuth, FirebaseAuth, FirebaseAuth>
+final class FirebaseAuthProvider extends $FunctionalProvider<FirebaseAuth, FirebaseAuth, FirebaseAuth>
     with $Provider<FirebaseAuth> {
   FirebaseAuthProvider._()
     : super(
@@ -78,8 +66,7 @@ final class FirebaseAuthProvider
 
   @$internal
   @override
-  $ProviderElement<FirebaseAuth> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<FirebaseAuth> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   FirebaseAuth create(Ref ref) {
@@ -88,10 +75,7 @@ final class FirebaseAuthProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(FirebaseAuth value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<FirebaseAuth>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<FirebaseAuth>(value));
   }
 }
 
@@ -100,8 +84,7 @@ String _$firebaseAuthHash() => r'8c3e9d11b27110ca96130356b5ef4d5d34a5ffc2';
 @ProviderFor(firestoreRefs)
 final firestoreRefsProvider = FirestoreRefsProvider._();
 
-final class FirestoreRefsProvider
-    extends $FunctionalProvider<FirestoreRefs, FirestoreRefs, FirestoreRefs>
+final class FirestoreRefsProvider extends $FunctionalProvider<FirestoreRefs, FirestoreRefs, FirestoreRefs>
     with $Provider<FirestoreRefs> {
   FirestoreRefsProvider._()
     : super(
@@ -119,8 +102,7 @@ final class FirestoreRefsProvider
 
   @$internal
   @override
-  $ProviderElement<FirestoreRefs> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<FirestoreRefs> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   FirestoreRefs create(Ref ref) {
@@ -129,10 +111,7 @@ final class FirestoreRefsProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(FirestoreRefs value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<FirestoreRefs>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<FirestoreRefs>(value));
   }
 }
 
@@ -141,13 +120,7 @@ String _$firestoreRefsHash() => r'a7e2df94b6ae399738f88135bf96f2313debca44';
 @ProviderFor(rtdb)
 final rtdbProvider = RtdbProvider._();
 
-final class RtdbProvider
-    extends
-        $FunctionalProvider<
-          FirebaseDatabase,
-          FirebaseDatabase,
-          FirebaseDatabase
-        >
+final class RtdbProvider extends $FunctionalProvider<FirebaseDatabase, FirebaseDatabase, FirebaseDatabase>
     with $Provider<FirebaseDatabase> {
   RtdbProvider._()
     : super(
@@ -165,8 +138,7 @@ final class RtdbProvider
 
   @$internal
   @override
-  $ProviderElement<FirebaseDatabase> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<FirebaseDatabase> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   FirebaseDatabase create(Ref ref) {
@@ -175,10 +147,7 @@ final class RtdbProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(FirebaseDatabase value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<FirebaseDatabase>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<FirebaseDatabase>(value));
   }
 }
 
@@ -187,8 +156,7 @@ String _$rtdbHash() => r'fe5c170ddccabd3d0b142b6c0995b7422254dc8b';
 @ProviderFor(online)
 final onlineProvider = OnlineProvider._();
 
-final class OnlineProvider
-    extends $FunctionalProvider<AsyncValue<bool>, bool, Stream<bool>>
+final class OnlineProvider extends $FunctionalProvider<AsyncValue<bool>, bool, Stream<bool>>
     with $FutureModifier<bool>, $StreamProvider<bool> {
   OnlineProvider._()
     : super(
@@ -206,8 +174,7 @@ final class OnlineProvider
 
   @$internal
   @override
-  $StreamProviderElement<bool> $createElement($ProviderPointer pointer) =>
-      $StreamProviderElement(pointer);
+  $StreamProviderElement<bool> $createElement($ProviderPointer pointer) => $StreamProviderElement(pointer);
 
   @override
   Stream<bool> create(Ref ref) {
@@ -220,8 +187,7 @@ String _$onlineHash() => r'dc130d4b884b115c71737eaa8b1983ea0ec5d032';
 @ProviderFor(authRepository)
 final authRepositoryProvider = AuthRepositoryProvider._();
 
-final class AuthRepositoryProvider
-    extends $FunctionalProvider<AuthRepository, AuthRepository, AuthRepository>
+final class AuthRepositoryProvider extends $FunctionalProvider<AuthRepository, AuthRepository, AuthRepository>
     with $Provider<AuthRepository> {
   AuthRepositoryProvider._()
     : super(
@@ -239,8 +205,7 @@ final class AuthRepositoryProvider
 
   @$internal
   @override
-  $ProviderElement<AuthRepository> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<AuthRepository> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   AuthRepository create(Ref ref) {
@@ -249,10 +214,7 @@ final class AuthRepositoryProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(AuthRepository value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<AuthRepository>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<AuthRepository>(value));
   }
 }
 
@@ -261,8 +223,7 @@ String _$authRepositoryHash() => r'c3c4aa2a198f809725f6aa65101c5448ea3a0ea6';
 @ProviderFor(authState)
 final authStateProvider = AuthStateProvider._();
 
-final class AuthStateProvider
-    extends $FunctionalProvider<AsyncValue<User?>, User?, Stream<User?>>
+final class AuthStateProvider extends $FunctionalProvider<AsyncValue<User?>, User?, Stream<User?>>
     with $FutureModifier<User?>, $StreamProvider<User?> {
   AuthStateProvider._()
     : super(
@@ -280,8 +241,7 @@ final class AuthStateProvider
 
   @$internal
   @override
-  $StreamProviderElement<User?> $createElement($ProviderPointer pointer) =>
-      $StreamProviderElement(pointer);
+  $StreamProviderElement<User?> $createElement($ProviderPointer pointer) => $StreamProviderElement(pointer);
 
   @override
   Stream<User?> create(Ref ref) {
@@ -294,9 +254,7 @@ String _$authStateHash() => r'227ae2c3c8c0e9d5be389d264437fe0a7c05a16f';
 @ProviderFor(currentUid)
 final currentUidProvider = CurrentUidProvider._();
 
-final class CurrentUidProvider
-    extends $FunctionalProvider<String?, String?, String?>
-    with $Provider<String?> {
+final class CurrentUidProvider extends $FunctionalProvider<String?, String?, String?> with $Provider<String?> {
   CurrentUidProvider._()
     : super(
         from: null,
@@ -313,8 +271,7 @@ final class CurrentUidProvider
 
   @$internal
   @override
-  $ProviderElement<String?> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<String?> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   String? create(Ref ref) {
@@ -323,10 +280,7 @@ final class CurrentUidProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(String? value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<String?>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<String?>(value));
   }
 }
 
@@ -335,8 +289,7 @@ String _$currentUidHash() => r'273859ab432628b4565d554a7b7a1acc27fa90bf';
 @ProviderFor(session)
 final sessionProvider = SessionProvider._();
 
-final class SessionProvider
-    extends $FunctionalProvider<AsyncValue<Session>, Session, Stream<Session>>
+final class SessionProvider extends $FunctionalProvider<AsyncValue<Session>, Session, Stream<Session>>
     with $FutureModifier<Session>, $StreamProvider<Session> {
   SessionProvider._()
     : super(
@@ -354,8 +307,7 @@ final class SessionProvider
 
   @$internal
   @override
-  $StreamProviderElement<Session> $createElement($ProviderPointer pointer) =>
-      $StreamProviderElement(pointer);
+  $StreamProviderElement<Session> $createElement($ProviderPointer pointer) => $StreamProviderElement(pointer);
 
   @override
   Stream<Session> create(Ref ref) {
@@ -372,8 +324,7 @@ final meProvider = MeProvider._();
 
 /// The signed-in profile. Only read below the "ready" part of the router.
 
-final class MeProvider extends $FunctionalProvider<AppUser, AppUser, AppUser>
-    with $Provider<AppUser> {
+final class MeProvider extends $FunctionalProvider<AppUser, AppUser, AppUser> with $Provider<AppUser> {
   /// The signed-in profile. Only read below the "ready" part of the router.
   MeProvider._()
     : super(
@@ -391,8 +342,7 @@ final class MeProvider extends $FunctionalProvider<AppUser, AppUser, AppUser>
 
   @$internal
   @override
-  $ProviderElement<AppUser> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<AppUser> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   AppUser create(Ref ref) {
@@ -401,10 +351,7 @@ final class MeProvider extends $FunctionalProvider<AppUser, AppUser, AppUser>
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(AppUser value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<AppUser>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<AppUser>(value));
   }
 }
 
@@ -413,8 +360,7 @@ String _$meHash() => r'2231d15e6f2dd16ccf7a551993dcf442ac26b01b';
 @ProviderFor(appDatabase)
 final appDatabaseProvider = AppDatabaseProvider._();
 
-final class AppDatabaseProvider
-    extends $FunctionalProvider<AppDatabase, AppDatabase, AppDatabase>
+final class AppDatabaseProvider extends $FunctionalProvider<AppDatabase, AppDatabase, AppDatabase>
     with $Provider<AppDatabase> {
   AppDatabaseProvider._()
     : super(
@@ -432,8 +378,7 @@ final class AppDatabaseProvider
 
   @$internal
   @override
-  $ProviderElement<AppDatabase> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<AppDatabase> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   AppDatabase create(Ref ref) {
@@ -442,10 +387,7 @@ final class AppDatabaseProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(AppDatabase value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<AppDatabase>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<AppDatabase>(value));
   }
 }
 
@@ -454,9 +396,7 @@ String _$appDatabaseHash() => r'22e555d52c5864dd04e9487da94c7c5f8a529986';
 @ProviderFor(workerApi)
 final workerApiProvider = WorkerApiProvider._();
 
-final class WorkerApiProvider
-    extends $FunctionalProvider<WorkerApi, WorkerApi, WorkerApi>
-    with $Provider<WorkerApi> {
+final class WorkerApiProvider extends $FunctionalProvider<WorkerApi, WorkerApi, WorkerApi> with $Provider<WorkerApi> {
   WorkerApiProvider._()
     : super(
         from: null,
@@ -473,8 +413,7 @@ final class WorkerApiProvider
 
   @$internal
   @override
-  $ProviderElement<WorkerApi> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<WorkerApi> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   WorkerApi create(Ref ref) {
@@ -483,10 +422,7 @@ final class WorkerApiProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(WorkerApi value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<WorkerApi>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<WorkerApi>(value));
   }
 }
 
@@ -495,8 +431,7 @@ String _$workerApiHash() => r'ea050a26ffb0aea0a2f97ef5941cace31725caa9';
 @ProviderFor(userRepository)
 final userRepositoryProvider = UserRepositoryProvider._();
 
-final class UserRepositoryProvider
-    extends $FunctionalProvider<UserRepository, UserRepository, UserRepository>
+final class UserRepositoryProvider extends $FunctionalProvider<UserRepository, UserRepository, UserRepository>
     with $Provider<UserRepository> {
   UserRepositoryProvider._()
     : super(
@@ -514,8 +449,7 @@ final class UserRepositoryProvider
 
   @$internal
   @override
-  $ProviderElement<UserRepository> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<UserRepository> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   UserRepository create(Ref ref) {
@@ -524,10 +458,7 @@ final class UserRepositoryProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(UserRepository value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<UserRepository>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<UserRepository>(value));
   }
 }
 
@@ -536,8 +467,7 @@ String _$userRepositoryHash() => r'70de9cf7bac33125d212c9cde0ffcc2d3b5a2d75';
 @ProviderFor(chatRepository)
 final chatRepositoryProvider = ChatRepositoryProvider._();
 
-final class ChatRepositoryProvider
-    extends $FunctionalProvider<ChatRepository, ChatRepository, ChatRepository>
+final class ChatRepositoryProvider extends $FunctionalProvider<ChatRepository, ChatRepository, ChatRepository>
     with $Provider<ChatRepository> {
   ChatRepositoryProvider._()
     : super(
@@ -555,8 +485,7 @@ final class ChatRepositoryProvider
 
   @$internal
   @override
-  $ProviderElement<ChatRepository> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<ChatRepository> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   ChatRepository create(Ref ref) {
@@ -565,10 +494,7 @@ final class ChatRepositoryProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(ChatRepository value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<ChatRepository>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<ChatRepository>(value));
   }
 }
 
@@ -577,8 +503,7 @@ String _$chatRepositoryHash() => r'b7c82547983e07fd63761b4737155cb9ac3ca658';
 @ProviderFor(messageWriter)
 final messageWriterProvider = MessageWriterProvider._();
 
-final class MessageWriterProvider
-    extends $FunctionalProvider<MessageWriter, MessageWriter, MessageWriter>
+final class MessageWriterProvider extends $FunctionalProvider<MessageWriter, MessageWriter, MessageWriter>
     with $Provider<MessageWriter> {
   MessageWriterProvider._()
     : super(
@@ -596,8 +521,7 @@ final class MessageWriterProvider
 
   @$internal
   @override
-  $ProviderElement<MessageWriter> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<MessageWriter> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   MessageWriter create(Ref ref) {
@@ -606,10 +530,7 @@ final class MessageWriterProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(MessageWriter value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<MessageWriter>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<MessageWriter>(value));
   }
 }
 
@@ -619,12 +540,7 @@ String _$messageWriterHash() => r'8d589bf137b4b0997d348c6695bed9eaf066bd82';
 final messageRepositoryProvider = MessageRepositoryProvider._();
 
 final class MessageRepositoryProvider
-    extends
-        $FunctionalProvider<
-          MessageRepository,
-          MessageRepository,
-          MessageRepository
-        >
+    extends $FunctionalProvider<MessageRepository, MessageRepository, MessageRepository>
     with $Provider<MessageRepository> {
   MessageRepositoryProvider._()
     : super(
@@ -642,9 +558,7 @@ final class MessageRepositoryProvider
 
   @$internal
   @override
-  $ProviderElement<MessageRepository> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
+  $ProviderElement<MessageRepository> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   MessageRepository create(Ref ref) {
@@ -653,10 +567,7 @@ final class MessageRepositoryProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(MessageRepository value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<MessageRepository>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<MessageRepository>(value));
   }
 }
 
@@ -665,8 +576,7 @@ String _$messageRepositoryHash() => r'5510eff1c281459f1158ce06461119e12629fc67';
 @ProviderFor(mediaUploader)
 final mediaUploaderProvider = MediaUploaderProvider._();
 
-final class MediaUploaderProvider
-    extends $FunctionalProvider<MediaUploader, MediaUploader, MediaUploader>
+final class MediaUploaderProvider extends $FunctionalProvider<MediaUploader, MediaUploader, MediaUploader>
     with $Provider<MediaUploader> {
   MediaUploaderProvider._()
     : super(
@@ -684,8 +594,7 @@ final class MediaUploaderProvider
 
   @$internal
   @override
-  $ProviderElement<MediaUploader> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<MediaUploader> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   MediaUploader create(Ref ref) {
@@ -694,10 +603,7 @@ final class MediaUploaderProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(MediaUploader value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<MediaUploader>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<MediaUploader>(value));
   }
 }
 
@@ -706,8 +612,7 @@ String _$mediaUploaderHash() => r'03a89e1c237dc35ab51701867950cd7d3d083c60';
 @ProviderFor(outbox)
 final outboxProvider = OutboxProvider._();
 
-final class OutboxProvider
-    extends $FunctionalProvider<OutboxService, OutboxService, OutboxService>
+final class OutboxProvider extends $FunctionalProvider<OutboxService, OutboxService, OutboxService>
     with $Provider<OutboxService> {
   OutboxProvider._()
     : super(
@@ -725,8 +630,7 @@ final class OutboxProvider
 
   @$internal
   @override
-  $ProviderElement<OutboxService> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<OutboxService> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   OutboxService create(Ref ref) {
@@ -735,10 +639,7 @@ final class OutboxProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(OutboxService value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<OutboxService>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<OutboxService>(value));
   }
 }
 
@@ -747,9 +648,7 @@ String _$outboxHash() => r'cae564d82f63ac64c3b8013a30fe9f8bfafd7912';
 @ProviderFor(presence)
 final presenceProvider = PresenceProvider._();
 
-final class PresenceProvider
-    extends
-        $FunctionalProvider<PresenceService, PresenceService, PresenceService>
+final class PresenceProvider extends $FunctionalProvider<PresenceService, PresenceService, PresenceService>
     with $Provider<PresenceService> {
   PresenceProvider._()
     : super(
@@ -767,8 +666,7 @@ final class PresenceProvider
 
   @$internal
   @override
-  $ProviderElement<PresenceService> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<PresenceService> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   PresenceService create(Ref ref) {
@@ -777,10 +675,7 @@ final class PresenceProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(PresenceService value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<PresenceService>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<PresenceService>(value));
   }
 }
 
@@ -789,13 +684,7 @@ String _$presenceHash() => r'4ed2b7fa12d0c864f84a61395baf0dfe34c1959d';
 @ProviderFor(linkPreviews)
 final linkPreviewsProvider = LinkPreviewsProvider._();
 
-final class LinkPreviewsProvider
-    extends
-        $FunctionalProvider<
-          LinkPreviewService,
-          LinkPreviewService,
-          LinkPreviewService
-        >
+final class LinkPreviewsProvider extends $FunctionalProvider<LinkPreviewService, LinkPreviewService, LinkPreviewService>
     with $Provider<LinkPreviewService> {
   LinkPreviewsProvider._()
     : super(
@@ -813,9 +702,7 @@ final class LinkPreviewsProvider
 
   @$internal
   @override
-  $ProviderElement<LinkPreviewService> $createElement(
-    $ProviderPointer pointer,
-  ) => $ProviderElement(pointer);
+  $ProviderElement<LinkPreviewService> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   LinkPreviewService create(Ref ref) {
@@ -824,10 +711,7 @@ final class LinkPreviewsProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(LinkPreviewService value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<LinkPreviewService>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<LinkPreviewService>(value));
   }
 }
 

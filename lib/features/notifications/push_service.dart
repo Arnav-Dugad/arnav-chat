@@ -28,15 +28,19 @@ class PushService {
     // ignore: deprecated_member_use
     _token = await messaging.getToken();
     if (_token != null) await _users.addFcmToken(_token!);
-    // ignore: deprecated_member_use
-    _subs.add(messaging.onTokenRefresh.listen((t) {
-      _token = t;
-      _users.addFcmToken(t);
-    }));
+    _subs.add(
+      // ignore: deprecated_member_use
+      messaging.onTokenRefresh.listen((t) {
+        _token = t;
+        _users.addFcmToken(t);
+      }),
+    );
 
-    _subs.add(FirebaseMessaging.onMessage.listen((m) {
-      if (m.data['type'] == 'message') showMessageNotification(m.data);
-    }));
+    _subs.add(
+      FirebaseMessaging.onMessage.listen((m) {
+        if (m.data['type'] == 'message') showMessageNotification(m.data);
+      }),
+    );
 
     final launch = await notificationsPlugin.getNotificationAppLaunchDetails();
     final r = launch?.notificationResponse;

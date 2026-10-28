@@ -12,8 +12,7 @@ part of 'update_controller.dart';
 @ProviderFor(updateService)
 final updateServiceProvider = UpdateServiceProvider._();
 
-final class UpdateServiceProvider
-    extends $FunctionalProvider<UpdateService, UpdateService, UpdateService>
+final class UpdateServiceProvider extends $FunctionalProvider<UpdateService, UpdateService, UpdateService>
     with $Provider<UpdateService> {
   UpdateServiceProvider._()
     : super(
@@ -31,8 +30,7 @@ final class UpdateServiceProvider
 
   @$internal
   @override
-  $ProviderElement<UpdateService> $createElement($ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+  $ProviderElement<UpdateService> $createElement($ProviderPointer pointer) => $ProviderElement(pointer);
 
   @override
   UpdateService create(Ref ref) {
@@ -41,10 +39,7 @@ final class UpdateServiceProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(UpdateService value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<UpdateService>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<UpdateService>(value));
   }
 }
 
@@ -53,8 +48,7 @@ String _$updateServiceHash() => r'ec9c4aee2fa91bc09d6c220cf3b3c745a263d6c5';
 @ProviderFor(UpdateController)
 final updateControllerProvider = UpdateControllerProvider._();
 
-final class UpdateControllerProvider
-    extends $NotifierProvider<UpdateController, UpdateState> {
+final class UpdateControllerProvider extends $NotifierProvider<UpdateController, UpdateState> {
   UpdateControllerProvider._()
     : super(
         from: null,
@@ -75,10 +69,7 @@ final class UpdateControllerProvider
 
   /// {@macro riverpod.override_with_value}
   Override overrideWithValue(UpdateState value) {
-    return $ProviderOverride(
-      origin: this,
-      providerOverride: $SyncValueProvider<UpdateState>(value),
-    );
+    return $ProviderOverride(origin: this, providerOverride: $SyncValueProvider<UpdateState>(value));
   }
 }
 
@@ -91,13 +82,7 @@ abstract class _$UpdateController extends $Notifier<UpdateState> {
   WhenComplete runBuild() {
     final ref = this.ref as $Ref<UpdateState, UpdateState>;
     final element =
-        ref.element
-            as $ClassProviderElement<
-              AnyNotifier<UpdateState, UpdateState>,
-              UpdateState,
-              Object?,
-              Object?
-            >;
+        ref.element as $ClassProviderElement<AnyNotifier<UpdateState, UpdateState>, UpdateState, Object?, Object?>;
     return element.handleCreate(ref, build);
   }
 }

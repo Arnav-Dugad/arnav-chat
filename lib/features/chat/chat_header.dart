@@ -76,14 +76,22 @@ class ChatHeader extends ConsumerWidget {
                               tag: nameTag,
                               child: Material(
                                 type: MaterialType.transparency,
-                                child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: context.text.titleSmall),
+                                child: Text(
+                                  name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: context.text.titleSmall,
+                                ),
                               ),
                             ),
                             AnimatedSwitcher(
                               duration: const Duration(milliseconds: 220),
                               transitionBuilder: (c, a) => FadeTransition(
                                 opacity: a,
-                                child: SlideTransition(position: Tween(begin: const Offset(0, 0.4), end: Offset.zero).animate(a), child: c),
+                                child: SlideTransition(
+                                  position: Tween(begin: const Offset(0, 0.4), end: Offset.zero).animate(a),
+                                  child: c,
+                                ),
                               ),
                               child: status.isEmpty
                                   ? const SizedBox.shrink()

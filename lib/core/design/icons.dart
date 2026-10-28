@@ -3,7 +3,6 @@
 // final class in current Flutter.
 import 'package:flutter/widgets.dart';
 
-
 /// The single icon vocabulary of the app (Phosphor, consistent 1.5px stroke).
 abstract final class AppIcons {
   static const _regular = 'PhosphorRegular';

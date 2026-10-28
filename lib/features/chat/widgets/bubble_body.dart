@@ -44,7 +44,8 @@ class BubbleBody extends StatelessWidget {
     final payload = message.payload;
     final fg = mine ? p.bubbleOutText : p.bubbleInText;
     final sub = mine ? Colors.white.withValues(alpha: 0.72) : p.textFaint;
-    final mediaOnly = (payload.kind == MessageKind.image || payload.kind == MessageKind.video) &&
+    final mediaOnly =
+        (payload.kind == MessageKind.image || payload.kind == MessageKind.video) &&
         (payload.text?.isEmpty ?? true) &&
         message.reply == null &&
         !message.forwarded;
@@ -82,11 +83,17 @@ class BubbleBody extends StatelessWidget {
       if (message.forwarded)
         Padding(
           padding: const EdgeInsets.only(bottom: 4),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Icon(AppIcons.forward, size: 13, color: sub),
-            const SizedBox(width: 4),
-            Text('Forwarded', style: context.text.labelSmall?.copyWith(color: sub, fontStyle: FontStyle.italic)),
-          ]),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(AppIcons.forward, size: 13, color: sub),
+              const SizedBox(width: 4),
+              Text(
+                'Forwarded',
+                style: context.text.labelSmall?.copyWith(color: sub, fontStyle: FontStyle.italic),
+              ),
+            ],
+          ),
         ),
       if (message.reply != null) _ReplyQuote(reply: message.reply!, mine: mine, author: replyAuthor),
       ..._content(context, payload, fg, sub, meta),
@@ -99,7 +106,13 @@ class BubbleBody extends StatelessWidget {
         gradient: mine ? p.accentGradient : null,
         shadows: mine
             ? null
-            : [BoxShadow(color: Colors.black.withValues(alpha: p.isDark ? 0 : 0.04), blurRadius: 6, offset: const Offset(0, 1))],
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: p.isDark ? 0 : 0.04),
+                  blurRadius: 6,
+                  offset: const Offset(0, 1),
+                ),
+              ],
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(
@@ -117,30 +130,44 @@ class BubbleBody extends StatelessWidget {
     final textStyle = context.text.bodyLarge!.copyWith(color: fg, height: 1.32);
     final inner = BorderRadius.circular(Radii.bubble - 4);
     Widget textWithMeta(String text) => Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 2),
-              child: Text.rich(
-                TextSpan(children: [
-                  WidgetSpan(child: LinkifiedText(text, style: textStyle, linkColor: mine ? Colors.white : context.palette.primary)),
-                  WidgetSpan(child: SizedBox(width: _Meta.width(message, mine), height: 12)),
-                ]),
-              ),
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 2),
+          child: Text.rich(
+            TextSpan(
+              children: [
+                WidgetSpan(
+                  child: LinkifiedText(
+                    text,
+                    style: textStyle,
+                    linkColor: mine ? Colors.white : context.palette.primary,
+                  ),
+                ),
+                WidgetSpan(child: SizedBox(width: _Meta.width(message, mine), height: 12)),
+              ],
             ),
-            Positioned(right: 0, bottom: 0, child: meta),
-          ],
-        );
+          ),
+        ),
+        Positioned(right: 0, bottom: 0, child: meta),
+      ],
+    );
 
     switch (payload.kind) {
       case MessageKind.deleted:
         return [
-          Row(mainAxisSize: MainAxisSize.min, children: [
-            Icon(AppIcons.trash, size: 15, color: sub),
-            const SizedBox(width: 6),
-            Text('Message deleted', style: textStyle.copyWith(color: sub, fontStyle: FontStyle.italic)),
-            const SizedBox(width: 8),
-            meta,
-          ]),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(AppIcons.trash, size: 15, color: sub),
+              const SizedBox(width: 6),
+              Text(
+                'Message deleted',
+                style: textStyle.copyWith(color: sub, fontStyle: FontStyle.italic),
+              ),
+              const SizedBox(width: 8),
+              meta,
+            ],
+          ),
         ];
       case MessageKind.text:
         return [
@@ -174,7 +201,13 @@ class BubbleBody extends StatelessWidget {
 }
 
 class _Meta extends StatelessWidget {
-  const _Meta({required this.message, required this.mine, required this.receipt, required this.color, this.onAccent = false});
+  const _Meta({
+    required this.message,
+    required this.mine,
+    required this.receipt,
+    required this.color,
+    this.onAccent = false,
+  });
 
   final Message message;
   final bool mine;
@@ -186,11 +219,20 @@ class _Meta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = TextStyle(color: color, fontSize: 11.5, fontWeight: FontWeight.w500, fontFeatures: const [FontFeature.tabularFigures()]);
+    final style = TextStyle(
+      color: color,
+      fontSize: 11.5,
+      fontWeight: FontWeight.w500,
+      fontFeatures: const [FontFeature.tabularFigures()],
+    );
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (message.starred) Padding(padding: const EdgeInsets.only(right: 3), child: Icon(AppIcons.starFill, size: 11, color: color)),
+        if (message.starred)
+          Padding(
+            padding: const EdgeInsets.only(right: 3),
+            child: Icon(AppIcons.starFill, size: 11, color: color),
+          ),
         if (message.editedAt != null && !message.deletedForEveryone) Text('edited ', style: style),
         Text(TimeFormat.bubble(message.createdAt), style: style),
         if (mine) ...[const SizedBox(width: 3), ReceiptTicks(receipt: receipt, size: 15, onAccent: mine || onAccent)],
@@ -221,19 +263,27 @@ class _ReplyQuote extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(width: 3, decoration: BoxDecoration(color: bar, borderRadius: BorderRadius.circular(2))),
+            Container(
+              width: 3,
+              decoration: BoxDecoration(color: bar, borderRadius: BorderRadius.circular(2)),
+            ),
             const SizedBox(width: 8),
             Flexible(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(author ?? '', style: context.text.labelMedium?.copyWith(color: bar, fontWeight: FontWeight.w600)),
+                  Text(
+                    author ?? '',
+                    style: context.text.labelMedium?.copyWith(color: bar, fontWeight: FontWeight.w600),
+                  ),
                   Text(
                     reply.preview,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: context.text.bodySmall?.copyWith(color: mine ? Colors.white.withValues(alpha: 0.85) : p.textMuted),
+                    style: context.text.bodySmall?.copyWith(
+                      color: mine ? Colors.white.withValues(alpha: 0.85) : p.textMuted,
+                    ),
                   ),
                 ],
               ),

@@ -64,14 +64,14 @@ class SkeletonBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: circle ? height : width,
-        height: height,
-        decoration: BoxDecoration(
-          color: context.palette.shimmerBase,
-          shape: circle ? BoxShape.circle : BoxShape.rectangle,
-          borderRadius: circle ? null : BorderRadius.circular(radius),
-        ),
-      );
+    width: circle ? height : width,
+    height: height,
+    decoration: BoxDecoration(
+      color: context.palette.shimmerBase,
+      shape: circle ? BoxShape.circle : BoxShape.rectangle,
+      borderRadius: circle ? null : BorderRadius.circular(radius),
+    ),
+  );
 }
 
 /// Skeleton rows matching the chat list layout exactly (no layout shift).
@@ -82,29 +82,29 @@ class ChatListSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Shimmer(
-        child: Column(
-          children: [
-            for (var i = 0; i < count; i++)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: Gaps.x4, vertical: 10),
-                child: Row(
-                  children: [
-                    const SkeletonBox(height: 54, circle: true),
-                    const SizedBox(width: Gaps.x3),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SkeletonBox(width: 120.0 + (i * 37 % 80), height: 14),
-                          const SizedBox(height: 8),
-                          SkeletonBox(width: 180.0 + (i * 53 % 90), height: 12),
-                        ],
-                      ),
-                    ),
-                  ],
+    child: Column(
+      children: [
+        for (var i = 0; i < count; i++)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: Gaps.x4, vertical: 10),
+            child: Row(
+              children: [
+                const SkeletonBox(height: 54, circle: true),
+                const SizedBox(width: Gaps.x3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SkeletonBox(width: 120.0 + (i * 37 % 80), height: 14),
+                      const SizedBox(height: 8),
+                      SkeletonBox(width: 180.0 + (i * 53 % 90), height: 12),
+                    ],
+                  ),
                 ),
-              ),
-          ],
-        ),
-      );
+              ],
+            ),
+          ),
+      ],
+    ),
+  );
 }

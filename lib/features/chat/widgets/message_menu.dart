@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/design/haptics.dart';
 import '../../../core/design/palette.dart';
+import '../../../core/design/theme.dart';
 import '../../../core/design/tokens.dart';
 import '../../../core/widgets/glass.dart';
 import '../../../core/widgets/pressable.dart';
@@ -46,21 +47,17 @@ Future<MenuResult?> showMessageMenu(
   final box = bubbleKey.currentContext?.findRenderObject() as RenderBox?;
   if (box == null || !box.hasSize) return Future.value();
   final rect = box.localToGlobal(Offset.zero) & box.size;
-  return Navigator.of(context, rootNavigator: true).push(PageRouteBuilder<MenuResult>(
-    opaque: false,
-    barrierDismissible: true,
-    barrierColor: Colors.transparent,
-    transitionDuration: const Duration(milliseconds: 260),
-    reverseTransitionDuration: const Duration(milliseconds: 180),
-    pageBuilder: (_, a, _) => _MessageMenu(
-      animation: a,
-      rect: rect,
-      bubble: bubble,
-      mine: mine,
-      actions: actions,
-      myReaction: myReaction,
+  return Navigator.of(context, rootNavigator: true).push(
+    PageRouteBuilder<MenuResult>(
+      opaque: false,
+      barrierDismissible: true,
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 260),
+      reverseTransitionDuration: const Duration(milliseconds: 180),
+      pageBuilder: (_, a, _) =>
+          _MessageMenu(animation: a, rect: rect, bubble: bubble, mine: mine, actions: actions, myReaction: myReaction),
     ),
-  ));
+  );
 }
 
 class _MessageMenu extends StatelessWidget {
@@ -96,7 +93,9 @@ class _MessageMenu extends StatelessWidget {
     var top = rect.top;
     final bubbleH = rect.height.clamp(0.0, screen.height * 0.45);
     if (top < minTop) top = minTop;
-    if (top + bubbleH > maxBottom) top = (maxBottom - bubbleH).clamp(minTop, double.infinity);
+    if (top + bubbleH > maxBottom) {
+      top = (maxBottom - bubbleH).clamp(minTop, double.infinity);
+    }
     final shifted = Rect.fromLTWH(rect.left, top, rect.width, bubbleH);
     final align = mine ? Alignment.topRight : Alignment.topLeft;
     final horizontal = mine
@@ -105,117 +104,139 @@ class _MessageMenu extends StatelessWidget {
 
     final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic, reverseCurve: Curves.easeIn);
 
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: GestureDetector(
-            onTap: () => Navigator.of(context).pop(),
-            child: AnimatedBuilder(
-              animation: curved,
-              builder: (context, _) => BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 16 * curved.value, sigmaY: 16 * curved.value),
-                child: ColoredBox(color: Colors.black.withValues(alpha: (p.isDark ? 0.45 : 0.22) * curved.value)),
+    // Material gives text a proper DefaultTextStyle inside this bare route.
+    return Material(
+      type: MaterialType.transparency,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: AnimatedBuilder(
+                animation: curved,
+                builder: (context, _) => BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 16 * curved.value, sigmaY: 16 * curved.value),
+                  child: ColoredBox(color: Colors.black.withValues(alpha: (p.isDark ? 0.45 : 0.22) * curved.value)),
+                ),
               ),
             ),
           ),
-        ),
-        // Lifted bubble.
-        AnimatedBuilder(
-          animation: curved,
-          builder: (context, child) {
-            final r = Rect.lerp(rect, shifted, curved.value)!;
-            return Positioned(
-              left: r.left,
-              top: r.top,
-              width: r.width,
-              height: r.height,
-              child: Transform.scale(scale: 1 + 0.03 * curved.value, child: child),
-            );
-          },
-          child: IgnorePointer(child: SingleChildScrollView(physics: const NeverScrollableScrollPhysics(), child: bubble)),
-        ),
-        // Reaction bar.
-        Positioned(
-          top: shifted.top - _barHeight - 10,
-          left: 0,
-          right: 0,
-          child: Padding(
-            padding: horizontal.add(const EdgeInsets.symmetric(horizontal: 0)),
-            child: Align(
-              alignment: align,
-              child: Glass(
-                pill: true,
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: SizedBox(
-                  height: _barHeight,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (final (i, e) in kQuickReactions.indexed)
-                        Pressable(
-                          scale: 0.8,
-                          onTap: () {
-                            Haptics.tap();
-                            Navigator.of(context).pop(ReactResult(e));
-                          },
-                          child: Container(
-                            width: 44,
-                            height: 44,
-                            alignment: Alignment.center,
-                            decoration: e == myReaction
-                                ? BoxDecoration(color: p.primary.withValues(alpha: 0.18), shape: BoxShape.circle)
-                                : null,
-                            child: Text(e, style: const TextStyle(fontSize: 26)),
+          // Lifted bubble.
+          AnimatedBuilder(
+            animation: curved,
+            builder: (context, child) {
+              final r = Rect.lerp(rect, shifted, curved.value)!;
+              return Positioned(
+                left: r.left,
+                top: r.top,
+                width: r.width,
+                child: Transform.scale(scale: 1 + 0.03 * curved.value, child: child),
+              );
+            },
+            child: IgnorePointer(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: screen.height * 0.45),
+                child: ClipRect(child: bubble),
+              ),
+            ),
+          ),
+          // Reaction bar.
+          Positioned(
+            top: shifted.top - _barHeight - 10,
+            left: 0,
+            right: 0,
+            child: Padding(
+              padding: horizontal.add(const EdgeInsets.symmetric(horizontal: 0)),
+              child:
+                  Align(
+                        alignment: align,
+                        child: Glass(
+                          pill: true,
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          child: SizedBox(
+                            height: _barHeight,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                for (final (i, e) in kQuickReactions.indexed)
+                                  Pressable(
+                                        scale: 0.8,
+                                        onTap: () {
+                                          Haptics.tap();
+                                          Navigator.of(context).pop(ReactResult(e));
+                                        },
+                                        child: Container(
+                                          width: 44,
+                                          height: 44,
+                                          alignment: Alignment.center,
+                                          decoration: e == myReaction
+                                              ? BoxDecoration(
+                                                  color: p.primary.withValues(alpha: 0.18),
+                                                  shape: BoxShape.circle,
+                                                )
+                                              : null,
+                                          child: Text(e, style: emojiStyle(26)),
+                                        ),
+                                      )
+                                      .animate()
+                                      .scale(
+                                        begin: const Offset(0.2, 0.2),
+                                        delay: (30 * i).ms,
+                                        duration: 380.ms,
+                                        curve: Curves.elasticOut,
+                                      )
+                                      .fadeIn(delay: (30 * i).ms, duration: 120.ms),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                      .animate()
+                      .scaleXY(begin: 0.6, alignment: align, duration: 300.ms, curve: Curves.easeOutBack)
+                      .fadeIn(duration: 140.ms),
+            ),
+          ),
+          // Actions.
+          Positioned(
+            top: shifted.bottom + 10,
+            left: 0,
+            right: 0,
+            child: Padding(
+              padding: horizontal,
+              child: Align(
+                alignment: align,
+                child:
+                    SizedBox(
+                          width: 230,
+                          child: Glass(
+                            radius: Radii.md,
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                for (final (i, a) in actions.indexed)
+                                  _MenuRow(
+                                        action: a,
+                                        onTap: () {
+                                          Haptics.select();
+                                          Navigator.of(context).pop(ActionResult(a.id));
+                                        },
+                                      )
+                                      .animate()
+                                      .fadeIn(delay: (20 * i + 60).ms, duration: 160.ms)
+                                      .moveY(begin: -6, end: 0, curve: Curves.easeOutCubic),
+                              ],
+                            ),
                           ),
                         )
-                            .animate()
-                            .scale(
-                              begin: const Offset(0.2, 0.2),
-                              delay: (30 * i).ms,
-                              duration: 380.ms,
-                              curve: Curves.elasticOut,
-                            )
-                            .fadeIn(delay: (30 * i).ms, duration: 120.ms),
-                    ],
-                  ),
-                ),
+                        .animate()
+                        .scaleXY(begin: 0.85, alignment: align, duration: 280.ms, curve: Curves.easeOutBack)
+                        .fadeIn(duration: 120.ms),
               ),
-            ).animate().scaleXY(begin: 0.6, alignment: align, duration: 300.ms, curve: Curves.easeOutBack).fadeIn(duration: 140.ms),
-          ),
-        ),
-        // Actions.
-        Positioned(
-          top: shifted.bottom + 10,
-          left: 0,
-          right: 0,
-          child: Padding(
-            padding: horizontal,
-            child: Align(
-              alignment: align,
-              child: SizedBox(
-                width: 230,
-                child: Glass(
-                  radius: Radii.md,
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (final (i, a) in actions.indexed)
-                        _MenuRow(
-                          action: a,
-                          onTap: () {
-                            Haptics.select();
-                            Navigator.of(context).pop(ActionResult(a.id));
-                          },
-                        ).animate().fadeIn(delay: (20 * i + 60).ms, duration: 160.ms).moveY(begin: -6, end: 0, curve: Curves.easeOutCubic),
-                    ],
-                  ),
-                ),
-              ).animate().scaleXY(begin: 0.85, alignment: align, duration: 280.ms, curve: Curves.easeOutBack).fadeIn(duration: 120.ms),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -240,7 +261,9 @@ class _MenuRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
-              Expanded(child: Text(action.label, style: context.text.bodyLarge?.copyWith(color: color))),
+              Expanded(
+                child: Text(action.label, style: context.text.bodyLarge?.copyWith(color: color)),
+              ),
               Icon(action.icon, size: 20, color: color),
             ],
           ),

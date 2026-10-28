@@ -9,7 +9,9 @@ import '../../core/widgets/count_badge.dart';
 import '../../core/widgets/glass.dart';
 import '../../data/providers.dart';
 
-final _totalUnreadProvider = StreamProvider.autoDispose<int>((ref) => ref.watch(chatRepositoryProvider).watchTotalUnread());
+final _totalUnreadProvider = StreamProvider.autoDispose<int>(
+  (ref) => ref.watch(chatRepositoryProvider).watchTotalUnread(),
+);
 
 class HomeShell extends ConsumerWidget {
   const HomeShell({super.key, required this.shell});
@@ -71,7 +73,11 @@ class _GlassTabBar extends StatelessWidget {
               final w = c.maxWidth / _tabs.length;
               return Stack(
                 children: [
-                  _StretchIndicator(index: index, slot: w, color: p.primary.withValues(alpha: p.isDark ? 0.22 : 0.13)),
+                  _StretchIndicator(
+                    index: index,
+                    slot: w,
+                    color: p.primary.withValues(alpha: p.isDark ? 0.22 : 0.13),
+                  ),
                   Row(
                     children: [
                       for (final (i, t) in _tabs.indexed)
@@ -90,7 +96,10 @@ class _GlassTabBar extends StatelessWidget {
                                     AnimatedSwitcher(
                                       duration: const Duration(milliseconds: 200),
                                       transitionBuilder: (c, a) => ScaleTransition(
-                                        scale: Tween(begin: 0.7, end: 1.0).animate(CurvedAnimation(parent: a, curve: Curves.easeOutBack)),
+                                        scale: Tween(
+                                          begin: 0.7,
+                                          end: 1.0,
+                                        ).animate(CurvedAnimation(parent: a, curve: Curves.easeOutBack)),
                                         child: FadeTransition(opacity: a, child: c),
                                       ),
                                       child: Icon(
@@ -100,8 +109,7 @@ class _GlassTabBar extends StatelessWidget {
                                         color: i == index ? p.primary : p.textMuted,
                                       ),
                                     ),
-                                    if (i == 0)
-                                      Positioned(right: -14, top: -8, child: CountBadge(count: unread)),
+                                    if (i == 0) Positioned(right: -14, top: -8, child: CountBadge(count: unread)),
                                   ],
                                 ),
                               ),
@@ -142,7 +150,9 @@ class _StretchIndicator extends StatelessWidget {
         width: (r - l).clamp(0, double.infinity),
         top: 8,
         bottom: 8,
-        child: DecoratedBox(decoration: ShapeDecoration(shape: const StadiumBorder(), color: color)),
+        child: DecoratedBox(
+          decoration: ShapeDecoration(shape: const StadiumBorder(), color: color),
+        ),
       ),
     );
   }
@@ -188,10 +198,10 @@ class _EdgesState extends State<_Edges> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
-        animation: Listenable.merge([_l, _r]),
-        builder: (_, _) => widget.builder(
-          _lt.transform(Curves.easeOutCubic.transform(_l.value)),
-          _rt.transform(Curves.easeOutCubic.transform(_r.value)),
-        ),
-      );
+    animation: Listenable.merge([_l, _r]),
+    builder: (_, _) => widget.builder(
+      _lt.transform(Curves.easeOutCubic.transform(_l.value)),
+      _rt.transform(Curves.easeOutCubic.transform(_r.value)),
+    ),
+  );
 }

@@ -11,14 +11,14 @@ class DaySeparator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Center(
-          child: Glass(
-            pill: true,
-            blur: 12,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-            child: Text(TimeFormat.daySeparator(date), style: context.text.labelSmall),
-          ),
-        ),
-      );
+    padding: const EdgeInsets.symmetric(vertical: 10),
+    child: Center(
+      child: Glass(
+        pill: true,
+        blur: 12,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        child: Text(TimeFormat.daySeparator(date), style: context.text.labelSmall),
+      ),
+    ),
+  );
 }

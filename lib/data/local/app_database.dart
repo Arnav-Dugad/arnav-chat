@@ -102,10 +102,10 @@ class AppDatabase extends _$AppDatabase {
   int get schemaVersion => 1;
 
   static QueryExecutor _open(String uid) => driftDatabase(
-        name: 'arnav_chat_$uid',
-        native: const DriftNativeOptions(shareAcrossIsolates: true),
-        web: DriftWebOptions(sqlite3Wasm: Uri.parse('sqlite3.wasm'), driftWorker: Uri.parse('drift_worker.js')),
-      );
+    name: 'arnav_chat_$uid',
+    native: const DriftNativeOptions(shareAcrossIsolates: true),
+    web: DriftWebOptions(sqlite3Wasm: Uri.parse('sqlite3.wasm'), driftWorker: Uri.parse('drift_worker.js')),
+  );
 
   Future<String?> getMeta(String key) async =>
       (await (select(meta)..where((t) => t.key.equals(key))).getSingleOrNull())?.value;

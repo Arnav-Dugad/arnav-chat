@@ -5,6 +5,7 @@ import '../../../core/design/haptics.dart';
 import '../../../core/design/icons.dart';
 import '../../../core/design/motion.dart';
 import '../../../core/design/palette.dart';
+import '../../../core/design/theme.dart';
 import '../../../core/design/tokens.dart';
 import '../../../data/models/message.dart';
 import 'bubble_body.dart';
@@ -123,7 +124,16 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
       bubble = Stack(
         clipBehavior: Clip.none,
         alignment: Alignment.center,
-        children: [bubble, Positioned.fill(child: OverflowBox(maxWidth: 200, maxHeight: 200, child: HeartBurst(onDone: () => setState(() => _heart = false))))],
+        children: [
+          bubble,
+          Positioned.fill(
+            child: OverflowBox(
+              maxWidth: 200,
+              maxHeight: 200,
+              child: HeartBurst(onDone: () => setState(() => _heart = false)),
+            ),
+          ),
+        ],
       );
     }
 
@@ -132,7 +142,10 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
       crossAxisAlignment: widget.mine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        ConstrainedBox(constraints: BoxConstraints(maxWidth: maxW), child: bubble),
+        ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxW),
+          child: bubble,
+        ),
         if (reactions.isNotEmpty)
           Transform.translate(
             offset: const Offset(0, -6),
@@ -157,11 +170,14 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
             onTap: widget.onRetry,
             child: Padding(
               padding: const EdgeInsets.only(top: 2, right: 4),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Icon(AppIcons.warning, size: 14, color: p.danger),
-                const SizedBox(width: 4),
-                Text('Retry', style: context.text.labelMedium?.copyWith(color: p.danger)),
-              ]),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(AppIcons.warning, size: 14, color: p.danger),
+                  const SizedBox(width: 4),
+                  Text('Retry', style: context.text.labelMedium?.copyWith(color: p.danger)),
+                ],
+              ),
             ),
           ),
       ],
@@ -246,12 +262,7 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
     }
 
     return Padding(
-      padding: EdgeInsets.only(
-        left: Gaps.x3,
-        right: Gaps.x3,
-        top: widget.first ? 6 : 1.5,
-        bottom: widget.last ? 2 : 0,
-      ),
+      padding: EdgeInsets.only(left: Gaps.x3, right: Gaps.x3, top: widget.first ? 6 : 1.5, bottom: widget.last ? 2 : 0),
       child: row,
     );
   }
@@ -282,7 +293,16 @@ class _ReactionChip extends StatelessWidget {
             shape: StadiumBorder(side: BorderSide(color: mineSelected ? p.primary : p.bg, width: 1.5)),
             color: p.surfaceRaised,
           ),
-          child: Text(count > 1 ? '$emoji $count' : emoji, style: context.text.labelMedium?.copyWith(color: p.text)),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(emoji, style: emojiStyle(14)),
+              if (count > 1) ...[
+                const SizedBox(width: 3),
+                Text('$count', style: context.text.labelMedium?.copyWith(color: p.text)),
+              ],
+            ],
+          ),
         ),
       ),
     );

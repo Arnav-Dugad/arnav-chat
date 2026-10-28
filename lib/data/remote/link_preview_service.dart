@@ -11,14 +11,17 @@ String? firstUrl(String text) => _urlRe.firstMatch(text)?.group(0);
 /// preview inside the message and never fetch it themselves.
 class LinkPreviewService {
   LinkPreviewService({Dio? dio})
-      : _dio = dio ??
-            Dio(BaseOptions(
+    : _dio =
+          dio ??
+          Dio(
+            BaseOptions(
               connectTimeout: const Duration(seconds: 4),
               receiveTimeout: const Duration(seconds: 5),
               responseType: ResponseType.plain,
               headers: {'User-Agent': 'Mozilla/5.0 (Linux; Android 14) ArnavChat/1.0 LinkPreview'},
               validateStatus: (s) => s != null && s < 400,
-            ));
+            ),
+          );
 
   final Dio _dio;
   final _cache = <String, LinkPreview?>{};

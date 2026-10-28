@@ -32,26 +32,28 @@ class PrivacyScreen extends ConsumerWidget {
       body: ListView(
         padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top + 64, bottom: Gaps.x8),
         children: [
-          SettingsGroup(children: [
-            SettingsRow(
-              icon: AppIcons.clock,
-              label: 'Last seen & online',
-              color: const Color(0xFF15946A),
-              trailing: Switch.adaptive(
-                value: privacy.lastSeen == Audience.everyone,
-                onChanged: (v) => update(privacy.copyWith(lastSeen: v ? Audience.everyone : Audience.nobody)),
+          SettingsGroup(
+            children: [
+              SettingsRow(
+                icon: AppIcons.clock,
+                label: 'Last seen & online',
+                color: const Color(0xFF15946A),
+                trailing: Switch.adaptive(
+                  value: privacy.lastSeen == Audience.everyone,
+                  onChanged: (v) => update(privacy.copyWith(lastSeen: v ? Audience.everyone : Audience.nobody)),
+                ),
               ),
-            ),
-            SettingsRow(
-              icon: AppIcons.checks,
-              label: 'Read receipts',
-              color: const Color(0xFF2F5BEA),
-              trailing: Switch.adaptive(
-                value: privacy.readReceipts,
-                onChanged: (v) => update(privacy.copyWith(readReceipts: v)),
+              SettingsRow(
+                icon: AppIcons.checks,
+                label: 'Read receipts',
+                color: const Color(0xFF2F5BEA),
+                trailing: Switch.adaptive(
+                  value: privacy.readReceipts,
+                  onChanged: (v) => update(privacy.copyWith(readReceipts: v)),
+                ),
               ),
-            ),
-          ]),
+            ],
+          ),
         ],
       ),
     );

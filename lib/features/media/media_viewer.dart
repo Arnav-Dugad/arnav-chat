@@ -8,15 +8,22 @@ import '../../core/utils/media_url.dart';
 import '../../core/widgets/buttons.dart';
 import '../../core/widgets/dots_loader.dart';
 
-Future<void> openMediaViewer(BuildContext context, {required String url, required String heroTag, String? blurhash, bool video = false}) =>
-    Navigator.of(context, rootNavigator: true).push(PageRouteBuilder<void>(
-      opaque: false,
-      barrierColor: Colors.transparent,
-      transitionDuration: const Duration(milliseconds: 320),
-      reverseTransitionDuration: const Duration(milliseconds: 260),
-      pageBuilder: (_, _, _) => MediaViewer(url: url, heroTag: heroTag, blurhash: blurhash, video: video),
-      transitionsBuilder: (_, a, _, child) => FadeTransition(opacity: a, child: child),
-    ));
+Future<void> openMediaViewer(
+  BuildContext context, {
+  required String url,
+  required String heroTag,
+  String? blurhash,
+  bool video = false,
+}) => Navigator.of(context, rootNavigator: true).push(
+  PageRouteBuilder<void>(
+    opaque: false,
+    barrierColor: Colors.transparent,
+    transitionDuration: const Duration(milliseconds: 320),
+    reverseTransitionDuration: const Duration(milliseconds: 260),
+    pageBuilder: (_, _, _) => MediaViewer(url: url, heroTag: heroTag, blurhash: blurhash, video: video),
+    transitionsBuilder: (_, a, _, child) => FadeTransition(opacity: a, child: child),
+  ),
+);
 
 /// Full-screen viewer: pinch-zoom, drag-to-dismiss with background fade.
 class MediaViewer extends StatefulWidget {
@@ -68,7 +75,10 @@ class _MediaViewerState extends State<MediaViewer> with SingleTickerProviderStat
       Navigator.of(context).pop();
       return;
     }
-    _backAnim = Tween(begin: _drag, end: Offset.zero).animate(CurvedAnimation(parent: _back, curve: Curves.easeOutBack));
+    _backAnim = Tween(
+      begin: _drag,
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _back, curve: Curves.easeOutBack));
     _back.forward(from: 0);
   }
 
@@ -81,8 +91,8 @@ class _MediaViewerState extends State<MediaViewer> with SingleTickerProviderStat
 
     final Widget content = widget.video
         ? (_video?.value.isInitialized ?? false)
-            ? AspectRatio(aspectRatio: _video!.value.aspectRatio, child: VideoPlayer(_video!))
-            : const Center(child: DotsLoader(color: Colors.white))
+              ? AspectRatio(aspectRatio: _video!.value.aspectRatio, child: VideoPlayer(_video!))
+              : const Center(child: DotsLoader(color: Colors.white))
         : CachedNetworkImage(
             imageUrl: MediaUrl.fit(widget.url, px),
             fit: BoxFit.contain,
@@ -113,7 +123,11 @@ class _MediaViewerState extends State<MediaViewer> with SingleTickerProviderStat
                       transformationController: _zoom,
                       minScale: 1,
                       maxScale: 5,
-                      child: SizedBox(width: size.width, height: size.height, child: Center(child: content)),
+                      child: SizedBox(
+                        width: size.width,
+                        height: size.height,
+                        child: Center(child: content),
+                      ),
                     ),
                   ),
                 ),
@@ -125,7 +139,12 @@ class _MediaViewerState extends State<MediaViewer> with SingleTickerProviderStat
             left: 8,
             child: Opacity(
               opacity: 1 - progress,
-              child: GlassIconButton(icon: AppIcons.close, label: 'Close', color: Colors.white, onPressed: () => Navigator.of(context).pop()),
+              child: GlassIconButton(
+                icon: AppIcons.close,
+                label: 'Close',
+                color: Colors.white,
+                onPressed: () => Navigator.of(context).pop(),
+              ),
             ),
           ),
         ],

@@ -28,7 +28,10 @@ class ProgressRing extends StatelessWidget {
           child: Center(
             child: done
                 ? Icon(AppIcons.check, color: p.primary, size: size * 0.34).animate().scale(curve: Curves.easeOutBack)
-                : Text('${(v * 100).round()}', style: context.text.titleLarge?.copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
+                : Text(
+                    '${(v * 100).round()}',
+                    style: context.text.titleLarge?.copyWith(fontFeatures: const [FontFeature.tabularFigures()]),
+                  ),
           ),
         ),
       ),
@@ -48,10 +51,16 @@ class _RingPainter extends CustomPainter {
     const stroke = 7.0;
     final rect = Offset.zero & size;
     final arc = rect.deflate(stroke / 2);
-    canvas.drawArc(arc, 0, math.pi * 2, false, Paint()
-      ..color = track
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = stroke);
+    canvas.drawArc(
+      arc,
+      0,
+      math.pi * 2,
+      false,
+      Paint()
+        ..color = track
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke,
+    );
     if (v <= 0) return;
     canvas.drawArc(
       arc,

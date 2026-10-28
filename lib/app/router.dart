@@ -34,11 +34,7 @@ class ChatRouteArgs {
 @Riverpod(keepAlive: true)
 GoRouter router(Ref ref) {
   final session = ValueNotifier<Session>(const SessionLoading());
-  ref.listen(
-    sessionProvider,
-    (_, next) => session.value = next.value ?? const SessionLoading(),
-    fireImmediately: true,
-  );
+  ref.listen(sessionProvider, (_, next) => session.value = next.value ?? const SessionLoading(), fireImmediately: true);
   ref.onDispose(session.dispose);
 
   return GoRouter(
@@ -56,21 +52,33 @@ GoRouter router(Ref ref) {
     },
     routes: [
       GoRoute(path: '/boot', builder: (_, _) => const SizedBox.shrink()),
-      GoRoute(path: '/signin', pageBuilder: (_, _) => const NoTransitionPage(child: SignInScreen())),
+      GoRoute(
+        path: '/signin',
+        pageBuilder: (_, _) => const NoTransitionPage(child: SignInScreen()),
+      ),
       GoRoute(path: '/onboarding', builder: (_, _) => const OnboardingScreen()),
       StatefulShellRoute.indexedStack(
         pageBuilder: (context, state, shell) => NoTransitionPage(child: HomeShell(shell: shell)),
         branches: [
-          StatefulShellBranch(routes: [GoRoute(path: '/chats', builder: (_, _) => const ChatListScreen())]),
-          StatefulShellBranch(routes: [GoRoute(path: '/people', builder: (_, _) => const PeopleScreen())]),
-          StatefulShellBranch(routes: [GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen())]),
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/chats', builder: (_, _) => const ChatListScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/people', builder: (_, _) => const PeopleScreen())],
+          ),
+          StatefulShellBranch(
+            routes: [GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen())],
+          ),
         ],
       ),
       GoRoute(
         path: '/chat/:id',
         builder: (_, s) => ChatScreen(chatId: s.pathParameters['id']!, args: s.extra as ChatRouteArgs?),
       ),
-      GoRoute(path: '/user/:uid', builder: (_, s) => ProfileScreen(uid: s.pathParameters['uid']!)),
+      GoRoute(
+        path: '/user/:uid',
+        builder: (_, s) => ProfileScreen(uid: s.pathParameters['uid']!),
+      ),
       GoRoute(path: '/find', builder: (_, _) => const FindPeopleScreen()),
       GoRoute(path: '/qr', builder: (_, _) => const QrScreen()),
       GoRoute(path: '/settings/profile', builder: (_, _) => const EditProfileScreen()),

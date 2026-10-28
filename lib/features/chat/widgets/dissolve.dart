@@ -37,29 +37,29 @@ class _DissolveState extends State<Dissolve> with SingleTickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) => AnimatedBuilder(
-        animation: _c,
-        builder: (context, child) {
-          final t = _c.value;
-          return CustomPaint(
-            foregroundPainter: _ParticlePainter(t, _particles, widget.color),
-            child: Opacity(
-              opacity: (1 - t * 2.2).clamp(0, 1),
-              child: Transform.scale(scale: 1 - 0.15 * t, child: child),
-            ),
-          );
-        },
-        child: widget.child,
+    animation: _c,
+    builder: (context, child) {
+      final t = _c.value;
+      return CustomPaint(
+        foregroundPainter: _ParticlePainter(t, _particles, widget.color),
+        child: Opacity(
+          opacity: (1 - t * 2.2).clamp(0, 1),
+          child: Transform.scale(scale: 1 - 0.15 * t, child: child),
+        ),
       );
+    },
+    child: widget.child,
+  );
 }
 
 class _Particle {
   _Particle(math.Random r)
-      : x = r.nextDouble(),
-        y = r.nextDouble(),
-        dx = (r.nextDouble() - 0.5) * 60,
-        dy = -20 - r.nextDouble() * 70,
-        size = 1.2 + r.nextDouble() * 2.6,
-        delay = r.nextDouble() * 0.35;
+    : x = r.nextDouble(),
+      y = r.nextDouble(),
+      dx = (r.nextDouble() - 0.5) * 60,
+      dy = -20 - r.nextDouble() * 70,
+      size = 1.2 + r.nextDouble() * 2.6,
+      delay = r.nextDouble() * 0.35;
 
   final double x, y, dx, dy, size, delay;
 }

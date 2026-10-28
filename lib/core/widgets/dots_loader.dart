@@ -34,10 +34,7 @@ class _DotsLoaderState extends State<DotsLoader> with SingleTickerProviderStateM
         builder: (context, _) => Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            for (var i = 0; i < 3; i++) ...[
-              if (i > 0) SizedBox(width: widget.gap),
-              _dot(i, reduced),
-            ],
+            for (var i = 0; i < 3; i++) ...[if (i > 0) SizedBox(width: widget.gap), _dot(i, reduced)],
           ],
         ),
       ),

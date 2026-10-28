@@ -32,7 +32,8 @@ class ChatTile extends ConsumerWidget {
     final me = ref.watch(currentUidProvider);
     final repo = ref.read(chatRepositoryProvider);
     final peerUid = chat.peerUid;
-    final online = peerUid != null && peerUid != me && (ref.watch(peerPresenceProvider(peerUid)).value?.online ?? false);
+    final online =
+        peerUid != null && peerUid != me && (ref.watch(peerPresenceProvider(peerUid)).value?.online ?? false);
     final typing = peerUid != null && peerUid != me && (ref.watch(peerTypingProvider(chat.id, peerUid)).value ?? false);
     final title = chat.title('…');
     final last = chat.last;
@@ -41,15 +42,19 @@ class ChatTile extends ConsumerWidget {
     final receipt = !mine
         ? null
         : (chat.peerReadUpTo != null && !last.at.isAfter(chat.peerReadUpTo!))
-            ? Receipt.read
-            : (chat.peerDeliveredUpTo != null && !last.at.isAfter(chat.peerDeliveredUpTo!))
-                ? Receipt.delivered
-                : Receipt.sent;
+        ? Receipt.read
+        : (chat.peerDeliveredUpTo != null && !last.at.isAfter(chat.peerDeliveredUpTo!))
+        ? Receipt.delivered
+        : Receipt.sent;
 
     final subtitle = AnimatedSwitcher(
       duration: const Duration(milliseconds: 220),
       child: typing
-          ? Text('typing…', key: const ValueKey('typing'), style: context.text.bodyMedium?.copyWith(color: p.primary))
+          ? Text(
+              'typing…',
+              key: const ValueKey('typing'),
+              style: context.text.bodyMedium?.copyWith(color: p.primary),
+            )
           : Row(
               key: const ValueKey('preview'),
               children: [
@@ -96,12 +101,7 @@ class ChatTile extends ConsumerWidget {
             showToast(context, 'Archived', icon: AppIcons.archive);
           },
         ),
-        SwipeAction(
-          icon: AppIcons.trash,
-          label: 'Delete',
-          color: p.danger,
-          onTap: () => repo.clearForMe(chat.id),
-        ),
+        SwipeAction(icon: AppIcons.trash, label: 'Delete', color: p.danger, onTap: () => repo.clearForMe(chat.id)),
       ],
       child: ColoredBox(
         color: p.bg,
@@ -115,13 +115,7 @@ class ChatTile extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: Gaps.x4, vertical: 10),
             child: Row(
               children: [
-                Avatar(
-                  name: title,
-                  url: chat.peer?.photoUrl,
-                  size: 54,
-                  online: online,
-                  heroTag: heroAvatar(chat.id),
-                ),
+                Avatar(name: title, url: chat.peer?.photoUrl, size: 54, online: online, heroTag: heroAvatar(chat.id)),
                 const SizedBox(width: Gaps.x3),
                 Expanded(
                   child: Column(
@@ -134,15 +128,26 @@ class ChatTile extends ConsumerWidget {
                               tag: heroName(chat.id),
                               child: Material(
                                 type: MaterialType.transparency,
-                                child: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: context.text.titleSmall),
+                                child: Text(
+                                  title,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: context.text.titleSmall,
+                                ),
                               ),
                             ),
                           ),
-                          if (chat.muted) Padding(padding: const EdgeInsets.only(right: 4), child: Icon(AppIcons.mute, size: 14, color: p.textFaint)),
+                          if (chat.muted)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: Icon(AppIcons.mute, size: 14, color: p.textFaint),
+                            ),
                           if (last != null)
                             Text(
                               TimeFormat.chatList(last.at),
-                              style: context.text.labelMedium?.copyWith(color: chat.unread > 0 ? p.primary : p.textFaint),
+                              style: context.text.labelMedium?.copyWith(
+                                color: chat.unread > 0 ? p.primary : p.textFaint,
+                              ),
                             ),
                         ],
                       ),

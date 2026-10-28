@@ -43,34 +43,41 @@ class PeopleScreen extends ConsumerWidget {
                   tint: p.surfaceRaised,
                   border: false,
                   padding: const EdgeInsets.symmetric(horizontal: Gaps.x5, vertical: 14),
-                  child: Row(children: [
-                    Icon(AppIcons.search, size: 20, color: p.textMuted),
-                    const SizedBox(width: Gaps.x3),
-                    Text('Search @username', style: context.text.bodyLarge?.copyWith(color: p.textFaint)),
-                  ]),
+                  child: Row(
+                    children: [
+                      Icon(AppIcons.search, size: 20, color: p.textMuted),
+                      const SizedBox(width: Gaps.x3),
+                      Text('Search @username', style: context.text.bodyLarge?.copyWith(color: p.textFaint)),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
           switch (contacts) {
             AsyncData(:final value) when value.isEmpty => SliverFillRemaining(
-                hasScrollBody: false,
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: bottom),
-                  child: EmptyState(
-                    icon: AppIcons.people,
-                    label: 'No contacts',
-                    action: PillButton(label: 'Scan QR', icon: AppIcons.scan, expand: false, onPressed: () => context.push('/qr')),
+              hasScrollBody: false,
+              child: Padding(
+                padding: EdgeInsets.only(bottom: bottom),
+                child: EmptyState(
+                  icon: AppIcons.people,
+                  label: 'No contacts',
+                  action: PillButton(
+                    label: 'Scan QR',
+                    icon: AppIcons.scan,
+                    expand: false,
+                    onPressed: () => context.push('/qr'),
                   ),
                 ),
               ),
+            ),
             AsyncData(:final value) => SliverList.builder(
-                itemCount: value.length,
-                itemBuilder: (context, i) => UserRow(
-                  user: value[i],
-                  onTap: () => openChatWith(context, ref, value[i]),
-                ).animate().fadeIn(delay: (i * 30).ms, duration: 260.ms).moveY(begin: 10, end: 0),
-              ),
+              itemCount: value.length,
+              itemBuilder: (context, i) => UserRow(
+                user: value[i],
+                onTap: () => openChatWith(context, ref, value[i]),
+              ).animate().fadeIn(delay: (i * 30).ms, duration: 260.ms).moveY(begin: 10, end: 0),
+            ),
             _ => const SliverToBoxAdapter(child: ChatListSkeleton(count: 5)),
           },
           SliverPadding(padding: EdgeInsets.only(bottom: bottom)),

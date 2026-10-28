@@ -9,9 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Widget _wrap(Widget child, {Brightness b = Brightness.light}) => MaterialApp(
-      theme: AppTheme.build(b, AccentColor.sapphire),
-      home: Scaffold(body: Center(child: child)),
-    );
+  theme: AppTheme.build(b, AccentColor.sapphire),
+  home: Scaffold(body: Center(child: child)),
+);
 
 void main() {
   testWidgets('CountBadge shows count and caps at 99+', (tester) async {
@@ -46,7 +46,12 @@ void main() {
   });
 
   testWidgets('EmptyState renders in dark mode', (tester) async {
-    await tester.pumpWidget(_wrap(const EmptyState(icon: Icons.chat, label: 'No chats yet'), b: Brightness.dark));
+    await tester.pumpWidget(
+      _wrap(
+        const EmptyState(icon: Icons.chat, label: 'No chats yet'),
+        b: Brightness.dark,
+      ),
+    );
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('No chats yet'), findsOneWidget);
   });

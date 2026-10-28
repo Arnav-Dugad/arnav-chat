@@ -132,7 +132,12 @@ class _InputBarState extends State<InputBar> {
 
     return GlassBar(
       child: Padding(
-        padding: EdgeInsets.fromLTRB(Gaps.x2, Gaps.x2, Gaps.x2, Gaps.x2 + (MediaQuery.viewInsetsOf(context).bottom > 0 ? 0 : bottom)),
+        padding: EdgeInsets.fromLTRB(
+          Gaps.x2,
+          Gaps.x2,
+          Gaps.x2,
+          Gaps.x2 + (MediaQuery.viewInsetsOf(context).bottom > 0 ? 0 : bottom),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -161,7 +166,10 @@ class _InputBarState extends State<InputBar> {
                     duration: const Duration(milliseconds: 220),
                     transitionBuilder: (c, a) => FadeTransition(
                       opacity: a,
-                      child: SlideTransition(position: Tween(begin: const Offset(0.08, 0), end: Offset.zero).animate(a), child: c),
+                      child: SlideTransition(
+                        position: Tween(begin: const Offset(0.08, 0), end: Offset.zero).animate(a),
+                        child: c,
+                      ),
                     ),
                     child: recording ? _recorderStrip(context) : _field(context),
                   ),
@@ -217,9 +225,11 @@ class _InputBarState extends State<InputBar> {
           if (_rec.locked)
             _RoundButton(icon: AppIcons.trash, label: 'Discard', color: p.danger, onTap: () => _rec.cancel())
           else
-            Container(width: 10, height: 10, decoration: BoxDecoration(color: p.danger, shape: BoxShape.circle))
-                .animate(onPlay: (c) => c.repeat(reverse: true))
-                .fade(begin: 1, end: 0.2, duration: 600.ms),
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(color: p.danger, shape: BoxShape.circle),
+            ).animate(onPlay: (c) => c.repeat(reverse: true)).fade(begin: 1, end: 0.2, duration: 600.ms),
           const SizedBox(width: 10),
           Text(
             TimeFormat.duration(_rec.elapsed),
@@ -237,10 +247,12 @@ class _InputBarState extends State<InputBar> {
               opacity: 1 - cancelProgress,
               child: Transform.translate(
                 offset: Offset(_rec.dragX * 0.5, 0),
-                child: Row(children: [
-                  Icon(AppIcons.back, size: 16, color: p.textMuted),
-                  Text('Cancel', style: context.text.labelMedium),
-                ]),
+                child: Row(
+                  children: [
+                    Icon(AppIcons.back, size: 16, color: p.textMuted),
+                    Text('Cancel', style: context.text.labelMedium),
+                  ],
+                ),
               ),
             ).animate(onPlay: (c) => c.repeat(reverse: true)).moveX(begin: 0, end: -4, duration: 700.ms),
         ],
@@ -255,7 +267,10 @@ class _InputBarState extends State<InputBar> {
       duration: const Duration(milliseconds: 240),
       transitionBuilder: (c, a) => RotationTransition(
         turns: Tween(begin: 0.6, end: 1.0).animate(CurvedAnimation(parent: a, curve: Curves.easeOutBack)),
-        child: ScaleTransition(scale: CurvedAnimation(parent: a, curve: Curves.easeOutBack), child: c),
+        child: ScaleTransition(
+          scale: CurvedAnimation(parent: a, curve: Curves.easeOutBack),
+          child: c,
+        ),
       ),
       child: showSend
           ? Pressable(
@@ -303,19 +318,16 @@ class _InputBarState extends State<InputBar> {
             child: Glass(
               pill: true,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
-              child: Column(children: [
-                Icon(AppIcons.lock, size: 18, color: palette.textMuted),
-                const SizedBox(height: 4),
-                Icon(Icons.keyboard_arrow_up_rounded, size: 18, color: palette.textFaint),
-              ]),
+              child: Column(
+                children: [
+                  Icon(AppIcons.lock, size: 18, color: palette.textMuted),
+                  const SizedBox(height: 4),
+                  Icon(Icons.keyboard_arrow_up_rounded, size: 18, color: palette.textFaint),
+                ],
+              ),
             ).animate().fadeIn(duration: 160.ms).moveY(begin: 20, end: 0, curve: Curves.easeOutBack),
           ),
-        Listener(
-          onPointerDown: _pressStart,
-          onPointerMove: _pressMove,
-          onPointerUp: _pressEnd,
-          child: button,
-        ),
+        Listener(onPointerDown: _pressStart, onPointerMove: _pressMove, onPointerUp: _pressEnd, child: button),
       ],
     );
   }
@@ -325,10 +337,10 @@ class _InputBarState extends State<InputBar> {
     final (IconData icon, String title, String body, VoidCallback? close) = widget.editing != null
         ? (AppIcons.edit, 'Edit', widget.editing!.payload.text ?? '', widget.onCancelEdit)
         : widget.reply != null
-            ? (AppIcons.reply, widget.replyAuthor ?? '', widget.reply!.payload.preview, widget.onCancelReply)
-            : widget.link != null
-                ? (AppIcons.link, widget.link!.title ?? widget.link!.url, widget.link!.siteName ?? '', widget.onDismissLink)
-                : (AppIcons.reply, '', '', null);
+        ? (AppIcons.reply, widget.replyAuthor ?? '', widget.reply!.payload.preview, widget.onCancelReply)
+        : widget.link != null
+        ? (AppIcons.link, widget.link!.title ?? widget.link!.url, widget.link!.siteName ?? '', widget.onDismissLink)
+        : (AppIcons.reply, '', '', null);
     if (close == null) return const SizedBox(width: double.infinity);
     return Padding(
       padding: const EdgeInsets.fromLTRB(Gaps.x2, Gaps.x1, Gaps.x1, Gaps.x2),
@@ -336,13 +348,22 @@ class _InputBarState extends State<InputBar> {
         children: [
           Icon(icon, size: 20, color: p.primary),
           const SizedBox(width: 10),
-          Container(width: 2.5, height: 34, decoration: BoxDecoration(color: p.primary, borderRadius: BorderRadius.circular(2))),
+          Container(
+            width: 2.5,
+            height: 34,
+            decoration: BoxDecoration(color: p.primary, borderRadius: BorderRadius.circular(2)),
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: context.text.labelMedium?.copyWith(color: p.primary, fontWeight: FontWeight.w600)),
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.text.labelMedium?.copyWith(color: p.primary, fontWeight: FontWeight.w600),
+                ),
                 Text(body, maxLines: 1, overflow: TextOverflow.ellipsis, style: context.text.bodySmall),
               ],
             ),
@@ -355,7 +376,14 @@ class _InputBarState extends State<InputBar> {
 }
 
 class _RoundButton extends StatelessWidget {
-  const _RoundButton({super.key, required this.icon, required this.label, required this.onTap, this.color, this.size = 44});
+  const _RoundButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.color,
+    this.size = 44,
+  });
 
   final IconData icon;
   final String label;
@@ -365,12 +393,15 @@ class _RoundButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Pressable(
-        onTap: onTap,
-        haptic: true,
-        scale: 0.86,
-        semanticLabel: label,
-        child: SizedBox.square(dimension: size, child: Icon(icon, size: size * 0.55, color: color ?? context.palette.text)),
-      );
+    onTap: onTap,
+    haptic: true,
+    scale: 0.86,
+    semanticLabel: label,
+    child: SizedBox.square(
+      dimension: size,
+      child: Icon(icon, size: size * 0.55, color: color ?? context.palette.text),
+    ),
+  );
 }
 
 class _LiveWavePainter extends CustomPainter {

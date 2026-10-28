@@ -65,43 +65,53 @@ class _QrScreenState extends ConsumerState<QrScreen> {
                       key: const ValueKey('code'),
                       child: Padding(
                         padding: const EdgeInsets.all(Gaps.x6),
-                        child: Glass(
-                          radius: Radii.xl,
-                          padding: const EdgeInsets.all(Gaps.x6),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Avatar(name: me.displayName, url: me.photoUrl, size: 64),
-                              const SizedBox(height: Gaps.x3),
-                              Text(me.handle, style: context.text.titleMedium),
-                              const SizedBox(height: Gaps.x5),
-                              Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: ShapeDecoration(
-                                  color: Colors.white,
-                                  shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(Radii.lg)),
-                                ),
-                                child: QrImageView(
-                                  data: qrPayloadFor(me.username),
-                                  size: 220,
-                                  eyeStyle: QrEyeStyle(eyeShape: QrEyeShape.circle, color: p.accent.base),
-                                  dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.circle, color: Color(0xFF0E1116)),
-                                  embeddedImage: const AssetImage('assets/brand/logo_48.png'),
-                                  embeddedImageStyle: const QrEmbeddedImageStyle(size: Size(40, 40)),
-                                  errorCorrectionLevel: QrErrorCorrectLevel.H,
-                                ),
-                              ),
-                              const SizedBox(height: Gaps.x5),
-                              PillButton(
-                                label: 'Share',
-                                icon: AppIcons.share,
-                                style: PillStyle.secondary,
-                                expand: false,
-                                onPressed: () => SharePlus.instance.share(ShareParams(text: '${me.handle} on Arnav Chat')),
-                              ),
-                            ],
-                          ),
-                        ).animate().scale(begin: const Offset(0.92, 0.92), curve: Curves.easeOutBack, duration: 420.ms).fadeIn(),
+                        child:
+                            Glass(
+                                  radius: Radii.xl,
+                                  padding: const EdgeInsets.all(Gaps.x6),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Avatar(name: me.displayName, url: me.photoUrl, size: 64),
+                                      const SizedBox(height: Gaps.x3),
+                                      Text(me.handle, style: context.text.titleMedium),
+                                      const SizedBox(height: Gaps.x5),
+                                      Container(
+                                        padding: const EdgeInsets.all(14),
+                                        decoration: ShapeDecoration(
+                                          color: Colors.white,
+                                          shape: RoundedSuperellipseBorder(
+                                            borderRadius: BorderRadius.circular(Radii.lg),
+                                          ),
+                                        ),
+                                        child: QrImageView(
+                                          data: qrPayloadFor(me.username),
+                                          size: 220,
+                                          eyeStyle: QrEyeStyle(eyeShape: QrEyeShape.circle, color: p.accent.base),
+                                          dataModuleStyle: const QrDataModuleStyle(
+                                            dataModuleShape: QrDataModuleShape.circle,
+                                            color: Color(0xFF0E1116),
+                                          ),
+                                          embeddedImage: const AssetImage('assets/brand/logo_48.png'),
+                                          embeddedImageStyle: const QrEmbeddedImageStyle(size: Size(40, 40)),
+                                          errorCorrectionLevel: QrErrorCorrectLevel.H,
+                                        ),
+                                      ),
+                                      const SizedBox(height: Gaps.x5),
+                                      PillButton(
+                                        label: 'Share',
+                                        icon: AppIcons.share,
+                                        style: PillStyle.secondary,
+                                        expand: false,
+                                        onPressed: () =>
+                                            SharePlus.instance.share(ShareParams(text: '${me.handle} on Arnav Chat')),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                                .animate()
+                                .scale(begin: const Offset(0.92, 0.92), curve: Curves.easeOutBack, duration: 420.ms)
+                                .fadeIn(),
                       ),
                     ),
             ),
@@ -109,18 +119,19 @@ class _QrScreenState extends ConsumerState<QrScreen> {
           if (_scan)
             Center(
               child: IgnorePointer(
-                child: Container(
-                  width: 250,
-                  height: 250,
-                  decoration: ShapeDecoration(
-                    shape: RoundedSuperellipseBorder(
-                      borderRadius: BorderRadius.circular(Radii.xl),
-                      side: const BorderSide(color: Colors.white, width: 3),
-                    ),
-                  ),
-                )
-                    .animate(onPlay: (c) => c.repeat(reverse: true))
-                    .scaleXY(begin: 1, end: 1.04, duration: 900.ms, curve: Curves.easeInOut),
+                child:
+                    Container(
+                          width: 250,
+                          height: 250,
+                          decoration: ShapeDecoration(
+                            shape: RoundedSuperellipseBorder(
+                              borderRadius: BorderRadius.circular(Radii.xl),
+                              side: const BorderSide(color: Colors.white, width: 3),
+                            ),
+                          ),
+                        )
+                        .animate(onPlay: (c) => c.repeat(reverse: true))
+                        .scaleXY(begin: 1, end: 1.04, duration: 900.ms, curve: Curves.easeInOut),
               ),
             ),
           Positioned(
@@ -156,18 +167,21 @@ class _Segmented extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = context.palette;
     Widget seg(String label, IconData icon, bool value) => GestureDetector(
-          onTap: () => onChanged(value),
-          behavior: HitTestBehavior.opaque,
-          child: SizedBox(
-            width: 112,
-            height: 44,
-            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(icon, size: 18, color: scan == value ? Colors.white : p.text),
-              const SizedBox(width: 6),
-              Text(label, style: context.text.labelLarge?.copyWith(color: scan == value ? Colors.white : p.text)),
-            ]),
-          ),
-        );
+      onTap: () => onChanged(value),
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 112,
+        height: 44,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18, color: scan == value ? Colors.white : p.text),
+            const SizedBox(width: 6),
+            Text(label, style: context.text.labelLarge?.copyWith(color: scan == value ? Colors.white : p.text)),
+          ],
+        ),
+      ),
+    );
     return Glass(
       pill: true,
       padding: const EdgeInsets.all(4),
@@ -183,7 +197,10 @@ class _Segmented extends StatelessWidget {
               decoration: ShapeDecoration(shape: const StadiumBorder(), gradient: p.accentGradient),
             ),
           ),
-          Row(mainAxisSize: MainAxisSize.min, children: [seg('My code', AppIcons.qr, false), seg('Scan', AppIcons.scan, true)]),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [seg('My code', AppIcons.qr, false), seg('Scan', AppIcons.scan, true)],
+          ),
         ],
       ),
     );

@@ -46,7 +46,10 @@ class Glass extends StatelessWidget {
     );
     return RepaintBoundary(
       child: pill
-          ? ClipPath(clipper: const ShapeBorderClipper(shape: StadiumBorder()), child: filtered)
+          ? ClipPath(
+              clipper: const ShapeBorderClipper(shape: StadiumBorder()),
+              child: filtered,
+            )
           : ClipRSuperellipse(borderRadius: BorderRadius.circular(radius), child: filtered),
     );
   }

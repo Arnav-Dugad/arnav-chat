@@ -17,11 +17,11 @@ class ReplyRef {
   Map<String, dynamic> toMap() => {'id': id, 'senderId': senderId, 'preview': preview, 'kind': kind.name};
 
   factory ReplyRef.fromMap(Map<String, dynamic> m) => ReplyRef(
-        id: m['id'] as String? ?? '',
-        senderId: m['senderId'] as String? ?? '',
-        preview: m['preview'] as String? ?? '',
-        kind: MessageKind.values.firstWhere((k) => k.name == m['kind'], orElse: () => MessageKind.text),
-      );
+    id: m['id'] as String? ?? '',
+    senderId: m['senderId'] as String? ?? '',
+    preview: m['preview'] as String? ?? '',
+    kind: MessageKind.values.firstWhere((k) => k.name == m['kind'], orElse: () => MessageKind.text),
+  );
 }
 
 class Message {

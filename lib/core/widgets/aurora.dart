@@ -51,8 +51,16 @@ class _AuroraPainter extends CustomPainter {
     final a = t * math.pi * 2;
     final blobs = [
       (Offset(size.width * (0.2 + 0.12 * math.sin(a)), size.height * (0.18 + 0.06 * math.cos(a))), colors.first, 0.75),
-      (Offset(size.width * (0.85 + 0.1 * math.cos(a * 1.3)), size.height * (0.32 + 0.08 * math.sin(a))), colors.last, 0.6),
-      (Offset(size.width * (0.5 + 0.15 * math.sin(a * 0.7)), size.height * (0.95 + 0.05 * math.cos(a))), colors.first, 0.7),
+      (
+        Offset(size.width * (0.85 + 0.1 * math.cos(a * 1.3)), size.height * (0.32 + 0.08 * math.sin(a))),
+        colors.last,
+        0.6,
+      ),
+      (
+        Offset(size.width * (0.5 + 0.15 * math.sin(a * 0.7)), size.height * (0.95 + 0.05 * math.cos(a))),
+        colors.first,
+        0.7,
+      ),
     ];
     for (final (c, color, r) in blobs) {
       final radius = size.width * r;
@@ -61,7 +69,10 @@ class _AuroraPainter extends CustomPainter {
         radius,
         Paint()
           ..shader = RadialGradient(
-            colors: [color.withValues(alpha: dark ? 0.38 : 0.26), color.withValues(alpha: 0)],
+            colors: [
+              color.withValues(alpha: dark ? 0.38 : 0.26),
+              color.withValues(alpha: 0),
+            ],
           ).createShader(Rect.fromCircle(center: c, radius: radius)),
       );
     }

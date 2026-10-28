@@ -39,11 +39,14 @@ class AppearanceScreen extends ConsumerWidget {
                 side: BorderSide(color: selected ? p.primary : Colors.transparent, width: 1.5),
               ),
             ),
-            child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(icon, color: selected ? p.primary : p.textMuted),
-              const SizedBox(height: 6),
-              Text(label, style: context.text.labelMedium?.copyWith(color: selected ? p.primary : p.textMuted)),
-            ]),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: selected ? p.primary : p.textMuted),
+                const SizedBox(height: 6),
+                Text(label, style: context.text.labelMedium?.copyWith(color: selected ? p.primary : p.textMuted)),
+              ],
+            ),
           ),
         ),
       );
@@ -55,11 +58,13 @@ class AppearanceScreen extends ConsumerWidget {
       body: ListView(
         padding: EdgeInsets.fromLTRB(Gaps.x4, MediaQuery.paddingOf(context).top + 72, Gaps.x4, Gaps.x8),
         children: [
-          Row(children: [
-            mode(ThemeMode.system, AppIcons.sparkle, 'Auto'),
-            mode(ThemeMode.light, AppIcons.sun, 'Light'),
-            mode(ThemeMode.dark, AppIcons.moon, 'Dark'),
-          ]),
+          Row(
+            children: [
+              mode(ThemeMode.system, AppIcons.sparkle, 'Auto'),
+              mode(ThemeMode.light, AppIcons.sun, 'Light'),
+              mode(ThemeMode.dark, AppIcons.moon, 'Dark'),
+            ],
+          ),
           const SizedBox(height: Gaps.x8),
           Wrap(
             alignment: WrapAlignment.center,
@@ -86,7 +91,11 @@ class AppearanceScreen extends ConsumerWidget {
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: LinearGradient(colors: accent.gradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
+                        gradient: LinearGradient(
+                          colors: accent.gradient,
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                       ),
                       child: AnimatedScale(
                         scale: a.accent == accent ? 1 : 0,

@@ -28,18 +28,15 @@ class TypingBubble extends StatelessWidget {
                   tween: Tween(begin: 0.3, end: 1),
                   duration: const Duration(milliseconds: 420),
                   curve: Curves.elasticOut,
-                  builder: (context, t, child) => Transform.scale(
-                    alignment: Alignment.bottomLeft,
-                    scale: t,
-                    child: child,
-                  ),
+                  builder: (context, t, child) =>
+                      Transform.scale(alignment: Alignment.bottomLeft, scale: t, child: child),
                   child: Container(
                     margin: const EdgeInsets.fromLTRB(Gaps.x3, 4, 0, 8),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     decoration: ShapeDecoration(
                       color: p.bubbleIn,
-                      shape: RoundedSuperellipseBorder(
-                        borderRadius: const BorderRadius.only(
+                      shape: const RoundedSuperellipseBorder(
+                        borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(Radii.bubble),
                           topRight: Radius.circular(Radii.bubble),
                           bottomRight: Radius.circular(Radii.bubble),

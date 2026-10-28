@@ -13,23 +13,16 @@ part of 'chat_screen_providers.dart';
 final chatMessagesProvider = ChatMessagesFamily._();
 
 final class ChatMessagesProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<List<Message>>,
-          List<Message>,
-          Stream<List<Message>>
-        >
+    extends $FunctionalProvider<AsyncValue<List<Message>>, List<Message>, Stream<List<Message>>>
     with $FutureModifier<List<Message>>, $StreamProvider<List<Message>> {
-  ChatMessagesProvider._({
-    required ChatMessagesFamily super.from,
-    required (String, int) super.argument,
-  }) : super(
-         retry: null,
-         name: r'chatMessagesProvider',
-         isAutoDispose: true,
-         dependencies: null,
-         $allTransitiveDependencies: null,
-       );
+  ChatMessagesProvider._({required ChatMessagesFamily super.from, required (String, int) super.argument})
+    : super(
+        retry: null,
+        name: r'chatMessagesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$chatMessagesHash();
@@ -43,9 +36,7 @@ final class ChatMessagesProvider
 
   @$internal
   @override
-  $StreamProviderElement<List<Message>> $createElement(
-    $ProviderPointer pointer,
-  ) => $StreamProviderElement(pointer);
+  $StreamProviderElement<List<Message>> $createElement($ProviderPointer pointer) => $StreamProviderElement(pointer);
 
   @override
   Stream<List<Message>> create(Ref ref) {
@@ -66,8 +57,7 @@ final class ChatMessagesProvider
 
 String _$chatMessagesHash() => r'095ef4865df3275b6d0e81f2b1c8ec4dd328a8d3';
 
-final class ChatMessagesFamily extends $Family
-    with $FunctionalFamilyOverride<Stream<List<Message>>, (String, int)> {
+final class ChatMessagesFamily extends $Family with $FunctionalFamilyOverride<Stream<List<Message>>, (String, int)> {
   ChatMessagesFamily._()
     : super(
         retry: null,
@@ -77,8 +67,7 @@ final class ChatMessagesFamily extends $Family
         isAutoDispose: true,
       );
 
-  ChatMessagesProvider call(String chatId, int limit) =>
-      ChatMessagesProvider._(argument: (chatId, limit), from: this);
+  ChatMessagesProvider call(String chatId, int limit) => ChatMessagesProvider._(argument: (chatId, limit), from: this);
 
   @override
   String toString() => r'chatMessagesProvider';
@@ -87,20 +76,16 @@ final class ChatMessagesFamily extends $Family
 @ProviderFor(cachedUser)
 final cachedUserProvider = CachedUserFamily._();
 
-final class CachedUserProvider
-    extends
-        $FunctionalProvider<AsyncValue<AppUser?>, AppUser?, Stream<AppUser?>>
+final class CachedUserProvider extends $FunctionalProvider<AsyncValue<AppUser?>, AppUser?, Stream<AppUser?>>
     with $FutureModifier<AppUser?>, $StreamProvider<AppUser?> {
-  CachedUserProvider._({
-    required CachedUserFamily super.from,
-    required String super.argument,
-  }) : super(
-         retry: null,
-         name: r'cachedUserProvider',
-         isAutoDispose: true,
-         dependencies: null,
-         $allTransitiveDependencies: null,
-       );
+  CachedUserProvider._({required CachedUserFamily super.from, required String super.argument})
+    : super(
+        retry: null,
+        name: r'cachedUserProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$cachedUserHash();
@@ -114,8 +99,7 @@ final class CachedUserProvider
 
   @$internal
   @override
-  $StreamProviderElement<AppUser?> $createElement($ProviderPointer pointer) =>
-      $StreamProviderElement(pointer);
+  $StreamProviderElement<AppUser?> $createElement($ProviderPointer pointer) => $StreamProviderElement(pointer);
 
   @override
   Stream<AppUser?> create(Ref ref) {
@@ -136,8 +120,7 @@ final class CachedUserProvider
 
 String _$cachedUserHash() => r'64a5b9f54b97d664f699b6c019e49f561c4b0708';
 
-final class CachedUserFamily extends $Family
-    with $FunctionalFamilyOverride<Stream<AppUser?>, String> {
+final class CachedUserFamily extends $Family with $FunctionalFamilyOverride<Stream<AppUser?>, String> {
   CachedUserFamily._()
     : super(
         retry: null,
@@ -147,8 +130,7 @@ final class CachedUserFamily extends $Family
         isAutoDispose: true,
       );
 
-  CachedUserProvider call(String uid) =>
-      CachedUserProvider._(argument: uid, from: this);
+  CachedUserProvider call(String uid) => CachedUserProvider._(argument: uid, from: this);
 
   @override
   String toString() => r'cachedUserProvider';

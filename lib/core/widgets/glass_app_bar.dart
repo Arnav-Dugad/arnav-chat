@@ -9,7 +9,14 @@ import 'glass.dart';
 /// Frosted app bar. Use with `Scaffold(extendBodyBehindAppBar: true)` so the
 /// content scrolls underneath the blur.
 class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
-  const GlassAppBar({super.key, this.title, this.titleWidget, this.actions = const [], this.leading, this.showBack = true});
+  const GlassAppBar({
+    super.key,
+    this.title,
+    this.titleWidget,
+    this.actions = const [],
+    this.leading,
+    this.showBack = true,
+  });
 
   final String? title;
   final Widget? titleWidget;
@@ -30,7 +37,8 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
         child: SizedBox(
           height: 56,
           child: NavigationToolbar(
-            leading: leading ??
+            leading:
+                leading ??
                 (canPop
                     ? GlassIconButton(
                         icon: AppIcons.back,

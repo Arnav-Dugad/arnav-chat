@@ -38,10 +38,13 @@ class ChatRepository {
     q = cursor == null
         ? q.orderBy('updatedAt', descending: true).limit(200)
         : q.where('updatedAt', isGreaterThan: Timestamp.fromMillisecondsSinceEpoch(cursor)).orderBy('updatedAt');
-    _sub = q.snapshots().listen(_onSnapshot, onError: (Object _) {
-      _sub = null;
-      Future.delayed(const Duration(seconds: 5), startSync);
-    });
+    _sub = q.snapshots().listen(
+      _onSnapshot,
+      onError: (Object _) {
+        _sub = null;
+        Future.delayed(const Duration(seconds: 5), startSync);
+      },
+    );
   }
 
   Future<void> stopSync() async {
@@ -66,7 +69,7 @@ class ChatRepository {
       final data = doc.data();
       if (data == null) continue;
       await _upsert(doc.id, data);
-      final u = data['updatedAt'].asMillis ?? 0;
+      final u = millisOf(data['updatedAt']) ?? 0;
       if (u > maxCursor) maxCursor = u;
     }
     if (maxCursor > 0) await _db.setMeta(_cursorKey, '$maxCursor');
@@ -83,11 +86,11 @@ class ChatRepository {
             senderId: lm['senderId'] as String? ?? '',
             kind: MessageKind.values.firstWhere((k) => k.name == lm['kind'], orElse: () => MessageKind.text),
             preview: lm['preview'] as String? ?? '',
-            at: DateTime.fromMillisecondsSinceEpoch(lm['at'].asMillis ?? 0),
+            at: DateTime.fromMillisecondsSinceEpoch(millisOf(lm['at']) ?? 0),
           );
     Map<String, dynamic> m(String k) => (d[k] as Map?)?.cast<String, dynamic>() ?? const {};
     final unread = (m('unread')[_uid] as num?)?.toInt() ?? 0;
-    final myDelivered = m('deliveredUpTo')[_uid].asMillis;
+    final myDelivered = millisOf(m('deliveredUpTo')[_uid]);
 
     final remote = ChatsCompanion(
       id: Value(id),
@@ -97,8 +100,8 @@ class ChatRepository {
       lastMessageJson: Value(last == null ? null : jsonEncode(last.toJson())),
       lastAt: Value(last?.at.millisecondsSinceEpoch ?? 0),
       unread: Value(unread),
-      peerReadUpTo: Value(m('readUpTo')[peer].asMillis),
-      peerDeliveredUpTo: Value(m('deliveredUpTo')[peer].asMillis),
+      peerReadUpTo: Value(millisOf(m('readUpTo')[peer])),
+      peerDeliveredUpTo: Value(millisOf(m('deliveredUpTo')[peer])),
       myDeliveredUpTo: Value(myDelivered),
     );
     await _db.into(_db.chats).insert(remote, onConflict: DoUpdate((_) => remote));
@@ -136,7 +139,9 @@ class ChatRepository {
   Future<void> markRead(String chatId) async {
     final row = await chatRow(chatId);
     if (row == null || row.lastAt == 0) return;
-    final last = row.lastMessageJson == null ? null : LastMessage.fromJson(jsonDecode(row.lastMessageJson!) as Map<String, dynamic>);
+    final last = row.lastMessageJson == null
+        ? null
+        : LastMessage.fromJson(jsonDecode(row.lastMessageJson!) as Map<String, dynamic>);
     if (row.unread == 0 && (last == null || last.senderId == _uid)) return;
     await (_db.update(_db.chats)..where((t) => t.id.equals(chatId))).write(const ChatsCompanion(unread: Value(0)));
     if (row.unread == 0 && !shareReadReceipts) return;
@@ -154,34 +159,39 @@ class ChatRepository {
 
   Future<ChatRow?> chatRow(String id) => (_db.select(_db.chats)..where((t) => t.id.equals(id))).getSingleOrNull();
 
-  Stream<ChatRow?> watchChatRow(String id) => (_db.select(_db.chats)..where((t) => t.id.equals(id))).watchSingleOrNull();
+  Stream<ChatRow?> watchChatRow(String id) =>
+      (_db.select(_db.chats)..where((t) => t.id.equals(id))).watchSingleOrNull();
 
   Stream<List<ChatSummary>> watchChats({bool archived = false}) {
     final q = _db.select(_db.chats).join([leftOuterJoin(_db.users, _db.users.uid.equalsExp(_db.chats.peerUid))])
       ..where(_db.chats.archived.equals(archived) & _db.chats.lastAt.isBiggerThanValue(0))
       ..orderBy([OrderingTerm.desc(_db.chats.pinned), OrderingTerm.desc(_db.chats.lastAt)]);
-    return q.watch().map((rows) => rows.map((r) {
-          final c = r.readTable(_db.chats);
-          final u = r.readTableOrNull(_db.users);
-          return toSummary(c, u == null ? null : UserRepository.fromRow(u));
-        }).toList());
+    return q.watch().map(
+      (rows) => rows.map((r) {
+        final c = r.readTable(_db.chats);
+        final u = r.readTableOrNull(_db.users);
+        return toSummary(c, u == null ? null : UserRepository.fromRow(u));
+      }).toList(),
+    );
   }
 
   static ChatSummary toSummary(ChatRow c, AppUser? peer) => ChatSummary(
-        id: c.id,
-        type: ChatType.values.firstWhere((t) => t.name == c.type, orElse: () => ChatType.direct),
-        members: List<String>.from(jsonDecode(c.membersJson) as List),
-        peerUid: c.peerUid,
-        peer: peer,
-        last: c.lastMessageJson == null ? null : LastMessage.fromJson(jsonDecode(c.lastMessageJson!) as Map<String, dynamic>),
-        unread: c.unread,
-        peerReadUpTo: c.peerReadUpTo == null ? null : DateTime.fromMillisecondsSinceEpoch(c.peerReadUpTo!),
-        peerDeliveredUpTo: c.peerDeliveredUpTo == null ? null : DateTime.fromMillisecondsSinceEpoch(c.peerDeliveredUpTo!),
-        pinned: c.pinned,
-        archived: c.archived,
-        mutedUntil: c.mutedUntil == null ? null : DateTime.fromMillisecondsSinceEpoch(c.mutedUntil!),
-        draft: c.draft,
-      );
+    id: c.id,
+    type: ChatType.values.firstWhere((t) => t.name == c.type, orElse: () => ChatType.direct),
+    members: List<String>.from(jsonDecode(c.membersJson) as List),
+    peerUid: c.peerUid,
+    peer: peer,
+    last: c.lastMessageJson == null
+        ? null
+        : LastMessage.fromJson(jsonDecode(c.lastMessageJson!) as Map<String, dynamic>),
+    unread: c.unread,
+    peerReadUpTo: c.peerReadUpTo == null ? null : DateTime.fromMillisecondsSinceEpoch(c.peerReadUpTo!),
+    peerDeliveredUpTo: c.peerDeliveredUpTo == null ? null : DateTime.fromMillisecondsSinceEpoch(c.peerDeliveredUpTo!),
+    pinned: c.pinned,
+    archived: c.archived,
+    mutedUntil: c.mutedUntil == null ? null : DateTime.fromMillisecondsSinceEpoch(c.mutedUntil!),
+    draft: c.draft,
+  );
 
   Stream<int> watchTotalUnread() {
     final sum = _db.chats.unread.sum();
@@ -198,7 +208,9 @@ class ChatRepository {
   Future<String> ensureDirect(String peerUid) async {
     final id = peerUid == _uid ? _uid : ChatSummary.directId(_uid, peerUid);
     final members = peerUid == _uid ? [_uid] : ([_uid, peerUid]..sort());
-    await _db.into(_db.chats).insert(
+    await _db
+        .into(_db.chats)
+        .insert(
           ChatsCompanion.insert(
             id: id,
             type: peerUid == _uid ? 'self' : 'direct',
@@ -212,10 +224,12 @@ class ChatRepository {
 
   /// Optimistic chat-list update when I send a message.
   Future<void> setLocalLast(String chatId, LastMessage last) =>
-      (_db.update(_db.chats)..where((t) => t.id.equals(chatId))).write(ChatsCompanion(
-        lastMessageJson: Value(jsonEncode(last.toJson())),
-        lastAt: Value(last.at.millisecondsSinceEpoch),
-      ));
+      (_db.update(_db.chats)..where((t) => t.id.equals(chatId))).write(
+        ChatsCompanion(
+          lastMessageJson: Value(jsonEncode(last.toJson())),
+          lastAt: Value(last.at.millisecondsSinceEpoch),
+        ),
+      );
 
   // ---------- per-user chat state (local) ----------
 
@@ -232,7 +246,9 @@ class ChatRepository {
   Future<void> clearForMe(String id) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db.transaction(() async {
-      await (_db.update(_db.messages)..where((t) => t.chatId.equals(id))).write(const MessagesCompanion(hidden: Value(true)));
+      await (_db.update(
+        _db.messages,
+      )..where((t) => t.chatId.equals(id))).write(const MessagesCompanion(hidden: Value(true)));
       await _write(id, ChatsCompanion(clearedAt: Value(now), lastAt: const Value(0), unread: const Value(0)));
     });
   }

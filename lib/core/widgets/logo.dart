@@ -7,7 +7,13 @@ import '../design/tokens.dart';
 /// The Arnav Chat mark, drawn in code so it can be animated (launch morph,
 /// pull-to-refresh). Geometry mirrors assets/brand/logo.svg (1024 units).
 class LogoMark extends StatelessWidget {
-  const LogoMark({super.key, this.size = 96, this.withBackground = true, this.markColor = Colors.white, this.progress = 1});
+  const LogoMark({
+    super.key,
+    this.size = 96,
+    this.withBackground = true,
+    this.markColor = Colors.white,
+    this.progress = 1,
+  });
 
   final double size;
   final bool withBackground;
@@ -18,11 +24,11 @@ class LogoMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox.square(
-        dimension: size,
-        child: CustomPaint(
-          painter: LogoPainter(withBackground: withBackground, markColor: markColor, progress: progress),
-        ),
-      );
+    dimension: size,
+    child: CustomPaint(
+      painter: LogoPainter(withBackground: withBackground, markColor: markColor, progress: progress),
+    ),
+  );
 }
 
 class LogoPainter extends CustomPainter {
@@ -50,14 +56,14 @@ class LogoPainter extends CustomPainter {
   /// Union of circle + tail. Combined explicitly: their opposite winding
   /// would otherwise punch a hole where they overlap.
   static Path bubble() => Path.combine(
-        PathOperation.union,
-        Path()..addOval(Rect.fromCircle(center: const Offset(512, 488), radius: 318)),
-        Path()
-          ..moveTo(232, 560)
-          ..cubicTo(230, 700, 232, 800, 176, 852)
-          ..cubicTo(278, 858, 362, 828, 440, 768)
-          ..close(),
-      );
+    PathOperation.union,
+    Path()..addOval(Rect.fromCircle(center: const Offset(512, 488), radius: 318)),
+    Path()
+      ..moveTo(232, 560)
+      ..cubicTo(230, 700, 232, 800, 176, 852)
+      ..cubicTo(278, 858, 362, 828, 440, 768)
+      ..close(),
+  );
 
   static Path letterA() => Path()
     ..moveTo(400, 650)

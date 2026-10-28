@@ -199,7 +199,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
 
   ReplyRef? get _replyRef => _reply == null
       ? null
-      : ReplyRef(id: _reply!.id, senderId: _reply!.senderId, preview: _reply!.payload.preview, kind: _reply!.payload.kind);
+      : ReplyRef(
+          id: _reply!.id,
+          senderId: _reply!.senderId,
+          preview: _reply!.payload.preview,
+          kind: _reply!.payload.kind,
+        );
 
   Future<void> _send() async {
     final text = _text.text.trim();
@@ -221,7 +226,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
     _typingOff?.cancel();
     _typingSentAt = DateTime.fromMillisecondsSinceEpoch(0);
     ref.read(presenceProvider).setTyping(_chatId, false).catchError((_) {});
-    await ref.read(outboxProvider).send(chatId: _chatId, payload: MessagePayload.text(text, link: link), reply: reply);
+    await ref
+        .read(outboxProvider)
+        .send(
+          chatId: _chatId,
+          payload: MessagePayload.text(text, link: link),
+          reply: reply,
+        );
     _toBottom();
   }
 
@@ -231,13 +242,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
   }
 
   Future<void> _sendVoice(VoiceClip clip) async {
-    await ref.read(outboxProvider).send(
+    await ref
+        .read(outboxProvider)
+        .send(
           chatId: _chatId,
           reply: _replyRef,
           localPath: clip.path,
           payload: MessagePayload(
             kind: MessageKind.audio,
-            media: MediaRef(url: '', mime: 'audio/mp4', name: 'voice.m4a', durationMs: clip.duration.inMilliseconds, waveform: clip.waveform),
+            media: MediaRef(
+              url: '',
+              mime: 'audio/mp4',
+              name: 'voice.m4a',
+              durationMs: clip.duration.inMilliseconds,
+              waveform: clip.waveform,
+            ),
           ),
         );
     setState(() => _reply = null);
@@ -281,7 +300,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
         await outbox.send(
           chatId: _chatId,
           localPath: f.path,
-          payload: MessagePayload(kind: MessageKind.video, media: MediaRef(url: '', name: f.name, mime: f.mimeType ?? 'video/mp4')),
+          payload: MessagePayload(
+            kind: MessageKind.video,
+            media: MediaRef(url: '', name: f.name, mime: f.mimeType ?? 'video/mp4'),
+          ),
         );
       case AttachKind.file:
         final res = await FilePicker.pickFiles();
@@ -290,7 +312,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
         await outbox.send(
           chatId: _chatId,
           localPath: f.path,
-          payload: MessagePayload(kind: MessageKind.file, media: MediaRef(url: '', name: f.name, bytes: await f.length())),
+          payload: MessagePayload(
+            kind: MessageKind.file,
+            media: MediaRef(url: '', name: f.name, bytes: await f.length()),
+          ),
         );
     }
     _toBottom();
@@ -308,7 +333,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
       if (mine && isText && !m.deletedForEveryone && m.state == SendState.sent)
         const MenuAction('edit', 'Edit', AppIcons.edit),
       if (!m.deletedForEveryone) const MenuAction('forward', 'Forward', AppIcons.forward),
-      if (!m.deletedForEveryone) MenuAction('star', m.starred ? 'Unstar' : 'Star', m.starred ? AppIcons.starFill : AppIcons.star),
+      if (!m.deletedForEveryone)
+        MenuAction('star', m.starred ? 'Unstar' : 'Star', m.starred ? AppIcons.starFill : AppIcons.star),
       const MenuAction('delete', 'Delete', AppIcons.trash, destructive: true),
     ];
     final result = await showMessageMenu(
@@ -317,7 +343,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
       mine: mine,
       myReaction: m.reactions[_me],
       actions: actions,
-      bubble: BubbleBody(message: m, mine: mine, receipt: receipt, first: first, last: last, replyAuthor: _authorName(m.reply?.senderId)),
+      bubble: BubbleBody(
+        message: m,
+        mine: mine,
+        receipt: receipt,
+        first: first,
+        last: last,
+        replyAuthor: _authorName(m.reply?.senderId),
+      ),
     );
     if (!mounted || result == null) return;
     final repo = ref.read(messageRepositoryProvider);
@@ -359,12 +392,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
       context,
       builder: (ctx) => Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          if (everyone)
-            PillButton(label: 'Delete for everyone', style: PillStyle.danger, onPressed: () => Navigator.pop(ctx, 'all')),
-          PillButton(label: 'Delete for me', style: PillStyle.danger, onPressed: () => Navigator.pop(ctx, 'me')),
-          PillButton(label: 'Cancel', style: PillStyle.ghost, onPressed: () => Navigator.pop(ctx)),
-        ]),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (everyone)
+              PillButton(
+                label: 'Delete for everyone',
+                style: PillStyle.danger,
+                onPressed: () => Navigator.pop(ctx, 'all'),
+              ),
+            PillButton(label: 'Delete for me', style: PillStyle.danger, onPressed: () => Navigator.pop(ctx, 'me')),
+            PillButton(label: 'Cancel', style: PillStyle.ghost, onPressed: () => Navigator.pop(ctx)),
+          ],
+        ),
       ),
     );
     if (choice == null || !mounted) return;
@@ -401,7 +441,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
     final peerUid = _peerUid;
     final peer = peerUid == null ? null : (ref.watch(cachedUserProvider(peerUid)).value ?? widget.args?.peer);
     final row = ref.watch(chatRowProvider(_chatId)).value;
-    final typing = peerUid != null && peerUid != _me && (ref.watch(peerTypingProvider(_chatId, peerUid)).value ?? false);
+    final typing =
+        peerUid != null && peerUid != _me && (ref.watch(peerTypingProvider(_chatId, peerUid)).value ?? false);
     _messages = ref.watch(chatMessagesProvider(_chatId, _limit)).value ?? _messages;
 
     ref.listen(chatRowProvider(_chatId), (prev, next) {
@@ -411,7 +452,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
       if (r.unread > 0) _scheduleRead();
     });
 
-    final deliveredUpTo = row?.peerDeliveredUpTo == null ? null : DateTime.fromMillisecondsSinceEpoch(row!.peerDeliveredUpTo!);
+    final deliveredUpTo = row?.peerDeliveredUpTo == null
+        ? null
+        : DateTime.fromMillisecondsSinceEpoch(row!.peerDeliveredUpTo!);
     final readUpTo = row?.peerReadUpTo == null ? null : DateTime.fromMillisecondsSinceEpoch(row!.peerReadUpTo!);
     final top = MediaQuery.paddingOf(context).top + 60;
     final firstBuild = _seen.isEmpty;
@@ -437,7 +480,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
         final last = newer == null || !grouped(m, newer);
         final mine = m.senderId == _me;
         final receipt = m.receipt(deliveredUpTo: deliveredUpTo, readUpTo: readUpTo);
-        final isNew = !firstBuild && !_seen.contains(m.id) && m.createdAt.isAfter(_openedAt.subtract(const Duration(seconds: 2)));
+        final isNew =
+            !firstBuild && !_seen.contains(m.id) && m.createdAt.isAfter(_openedAt.subtract(const Duration(seconds: 2)));
         _seen.add(m.id);
 
         final bubble = MessageBubble(
@@ -468,7 +512,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
           onRetry: () => ref.read(outboxProvider).retry(m.id),
         );
         final showDay = older == null || !TimeFormat.sameDay(older.createdAt, m.createdAt);
-        return showDay ? Column(children: [DaySeparator(date: m.createdAt), bubble]) : bubble;
+        return showDay
+            ? Column(
+                children: [
+                  DaySeparator(date: m.createdAt),
+                  bubble,
+                ],
+              )
+            : bubble;
       },
     );
     if (firstBuild) {
@@ -487,7 +538,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
                 gradient: RadialGradient(
                   center: const Alignment(0.9, -1.1),
                   radius: 1.4,
-                  colors: [p.primary.withValues(alpha: p.isDark ? 0.10 : 0.07), p.bg],
+                  colors: [
+                    p.primary.withValues(alpha: p.isDark ? 0.10 : 0.07),
+                    p.bg,
+                  ],
                 ),
               ),
             ),
@@ -562,10 +616,10 @@ class _JumpButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Glass(
-        pill: true,
-        child: RotatedBox(
-          quarterTurns: 2,
-          child: GlassIconButton(icon: AppIcons.up, label: 'Latest', onPressed: onTap, size: 44),
-        ),
-      );
+    pill: true,
+    child: RotatedBox(
+      quarterTurns: 2,
+      child: GlassIconButton(icon: AppIcons.up, label: 'Latest', onPressed: onTap, size: 44),
+    ),
+  );
 }

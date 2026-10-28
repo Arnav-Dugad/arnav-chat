@@ -30,7 +30,10 @@ class CountBadge extends StatelessWidget {
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 240),
           transitionBuilder: (child, a) => SlideTransition(
-            position: Tween(begin: const Offset(0, 0.6), end: Offset.zero).animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic)),
+            position: Tween(
+              begin: const Offset(0, 0.6),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(parent: a, curve: Curves.easeOutCubic)),
             child: FadeTransition(opacity: a, child: child),
           ),
           child: Text(

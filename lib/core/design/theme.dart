@@ -13,13 +13,7 @@ abstract final class AppTheme {
     final scheme = ColorScheme.fromSeed(
       seedColor: accent.base,
       brightness: brightness,
-    ).copyWith(
-      primary: accent.base,
-      onPrimary: Colors.white,
-      surface: p.surface,
-      onSurface: p.text,
-      error: p.danger,
-    );
+    ).copyWith(primary: accent.base, onPrimary: Colors.white, surface: p.surface, onSurface: p.text, error: p.danger);
 
     final text = _textTheme(p);
     return ThemeData(
@@ -62,10 +56,7 @@ abstract final class AppTheme {
           TargetPlatform.fuchsia: CupertinoPageTransitionsBuilder(),
         },
       ),
-      cupertinoOverrideTheme: CupertinoThemeData(
-        brightness: brightness,
-        primaryColor: accent.base,
-      ),
+      cupertinoOverrideTheme: CupertinoThemeData(brightness: brightness, primaryColor: accent.base),
       switchTheme: SwitchThemeData(
         thumbColor: const WidgetStatePropertyAll(Colors.white),
         trackColor: WidgetStateProperty.resolveWith(
@@ -84,23 +75,23 @@ abstract final class AppTheme {
   }
 
   static SystemUiOverlayStyle overlayStyle(Brightness b) => SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        systemNavigationBarColor: Colors.transparent,
-        systemNavigationBarContrastEnforced: false,
-        statusBarIconBrightness: b == Brightness.dark ? Brightness.light : Brightness.dark,
-        statusBarBrightness: b,
-        systemNavigationBarIconBrightness: b == Brightness.dark ? Brightness.light : Brightness.dark,
-      );
+    statusBarColor: Colors.transparent,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarContrastEnforced: false,
+    statusBarIconBrightness: b == Brightness.dark ? Brightness.light : Brightness.dark,
+    statusBarBrightness: b,
+    systemNavigationBarIconBrightness: b == Brightness.dark ? Brightness.light : Brightness.dark,
+  );
 
   static TextTheme _textTheme(Palette p) {
     TextStyle s(double size, FontWeight w, double tracking, {double height = 1.3, Color? c}) => TextStyle(
-          fontFamily: font,
-          fontSize: size,
-          fontWeight: w,
-          letterSpacing: tracking,
-          height: height,
-          color: c ?? p.text,
-        );
+      fontFamily: font,
+      fontSize: size,
+      fontWeight: w,
+      letterSpacing: tracking,
+      height: height,
+      color: c ?? p.text,
+    );
     return TextTheme(
       displaySmall: s(32, FontWeight.w700, -0.9, height: 1.12),
       headlineSmall: s(26, FontWeight.w700, -0.6, height: 1.15),
@@ -119,3 +110,9 @@ abstract final class AppTheme {
 
 /// Default radius used on cards and sheets.
 const kCardRadius = BorderRadius.all(Radius.circular(Radii.lg));
+
+/// Emoji glyphs must come from the colour emoji font: Inter has a monochrome
+/// U+2764 (heart) that would otherwise win.
+const kEmojiFonts = ['Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji'];
+TextStyle emojiStyle(double size) =>
+    TextStyle(fontSize: size, fontFamily: kEmojiFonts.first, fontFamilyFallback: kEmojiFonts, height: 1.1);

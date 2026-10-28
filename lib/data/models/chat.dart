@@ -4,7 +4,13 @@ import 'message_payload.dart';
 enum ChatType { direct, self, group }
 
 class LastMessage {
-  const LastMessage({required this.id, required this.senderId, required this.kind, required this.preview, required this.at});
+  const LastMessage({
+    required this.id,
+    required this.senderId,
+    required this.kind,
+    required this.preview,
+    required this.at,
+  });
 
   final String id;
   final String senderId;
@@ -12,16 +18,21 @@ class LastMessage {
   final String preview;
   final DateTime at;
 
-  Map<String, dynamic> toJson() =>
-      {'id': id, 'senderId': senderId, 'kind': kind.name, 'preview': preview, 'at': at.millisecondsSinceEpoch};
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'senderId': senderId,
+    'kind': kind.name,
+    'preview': preview,
+    'at': at.millisecondsSinceEpoch,
+  };
 
   factory LastMessage.fromJson(Map<String, dynamic> m) => LastMessage(
-        id: m['id'] as String? ?? '',
-        senderId: m['senderId'] as String? ?? '',
-        kind: MessageKind.values.firstWhere((k) => k.name == m['kind'], orElse: () => MessageKind.text),
-        preview: m['preview'] as String? ?? '',
-        at: DateTime.fromMillisecondsSinceEpoch((m['at'] as num?)?.toInt() ?? 0),
-      );
+    id: m['id'] as String? ?? '',
+    senderId: m['senderId'] as String? ?? '',
+    kind: MessageKind.values.firstWhere((k) => k.name == m['kind'], orElse: () => MessageKind.text),
+    preview: m['preview'] as String? ?? '',
+    at: DateTime.fromMillisecondsSinceEpoch((m['at'] as num?)?.toInt() ?? 0),
+  );
 }
 
 /// A chat row as the UI sees it (Drift row + resolved peer profile).

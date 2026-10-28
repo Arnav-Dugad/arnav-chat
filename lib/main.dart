@@ -19,19 +19,11 @@ Future<void> main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Offline-first: Firestore's own cache backs listeners when offline.
-  FirebaseFirestore.instance.settings = const Settings(
-    persistenceEnabled: true,
-    cacheSizeBytes: 100 * 1024 * 1024,
-  );
+  FirebaseFirestore.instance.settings = const Settings(persistenceEnabled: true, cacheSizeBytes: 100 * 1024 * 1024);
   if (!kIsWeb) FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   final prefs = await SharedPreferences.getInstance();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
-  runApp(
-    ProviderScope(
-      overrides: [sharedPrefsProvider.overrideWithValue(prefs)],
-      child: const ArnavChatApp(),
-    ),
-  );
+  runApp(ProviderScope(overrides: [sharedPrefsProvider.overrideWithValue(prefs)], child: const ArnavChatApp()));
 }

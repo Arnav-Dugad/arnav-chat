@@ -39,23 +39,19 @@ class MessageWriter {
         if (reply != null) 'reply': reply.toMap(),
         if (forwarded) 'forwarded': true,
       })
-      ..set(
-        _refs.chat(chatId),
-        {
-          'type': members.length == 1 ? 'self' : 'direct',
-          'members': members,
-          'updatedAt': now,
-          'lastMessage': {
-            'id': messageId,
-            'senderId': senderId,
-            'kind': payload.kind.name,
-            'preview': _clip(payload.preview),
-            'at': now,
-          },
-          'unread': {for (final o in others) o: FieldValue.increment(1)},
+      ..set(_refs.chat(chatId), {
+        'type': members.length == 1 ? 'self' : 'direct',
+        'members': members,
+        'updatedAt': now,
+        'lastMessage': {
+          'id': messageId,
+          'senderId': senderId,
+          'kind': payload.kind.name,
+          'preview': _clip(payload.preview),
+          'at': now,
         },
-        SetOptions(merge: true),
-      );
+        'unread': {for (final o in others) o: FieldValue.increment(1)},
+      }, SetOptions(merge: true));
     return batch.commit();
   }
 
@@ -89,11 +85,10 @@ class MessageWriter {
     return batch.commit();
   }
 
-  Future<void> react(String chatId, String messageId, String uid, String? emoji) =>
-      _refs.messages(chatId).doc(messageId).update({
-        'reactions.$uid': emoji ?? FieldValue.delete(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+  Future<void> react(String chatId, String messageId, String uid, String? emoji) => _refs
+      .messages(chatId)
+      .doc(messageId)
+      .update({'reactions.$uid': emoji ?? FieldValue.delete(), 'updatedAt': FieldValue.serverTimestamp()});
 
   static String _clip(String s) => s.length > 120 ? '${s.substring(0, 119)}…' : s;
 }

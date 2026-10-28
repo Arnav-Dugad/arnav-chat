@@ -12,7 +12,9 @@ import '../../core/widgets/pressable.dart';
 import '../../data/models/message.dart';
 import '../../data/providers.dart';
 
-final _starredProvider = StreamProvider.autoDispose<List<Message>>((ref) => ref.watch(messageRepositoryProvider).watchStarred());
+final _starredProvider = StreamProvider.autoDispose<List<Message>>(
+  (ref) => ref.watch(messageRepositoryProvider).watchStarred(),
+);
 
 class StarredScreen extends ConsumerWidget {
   const StarredScreen({super.key});
@@ -41,13 +43,22 @@ class StarredScreen extends ConsumerWidget {
                       color: p.surface,
                       shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(Radii.md)),
                     ),
-                    child: Row(children: [
-                      Icon(AppIcons.starFill, size: 18, color: p.warning),
-                      const SizedBox(width: Gaps.x3),
-                      Expanded(child: Text(m.payload.preview, maxLines: 2, overflow: TextOverflow.ellipsis, style: context.text.bodyLarge)),
-                      const SizedBox(width: Gaps.x2),
-                      Text(TimeFormat.chatList(m.createdAt), style: context.text.labelMedium),
-                    ]),
+                    child: Row(
+                      children: [
+                        Icon(AppIcons.starFill, size: 18, color: p.warning),
+                        const SizedBox(width: Gaps.x3),
+                        Expanded(
+                          child: Text(
+                            m.payload.preview,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: context.text.bodyLarge,
+                          ),
+                        ),
+                        const SizedBox(width: Gaps.x2),
+                        Text(TimeFormat.chatList(m.createdAt), style: context.text.labelMedium),
+                      ],
+                    ),
                   ),
                 );
               },

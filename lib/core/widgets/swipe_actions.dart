@@ -84,33 +84,59 @@ class _SwipeActionsState extends State<SwipeActions> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final width = constraints.maxWidth;
-      return GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onHorizontalDragUpdate: (d) => _onUpdate(d, width),
-        onHorizontalDragEnd: (d) => _onEnd(d, width),
-        child: AnimatedBuilder(
-          animation: _c,
-          child: widget.child,
-          builder: (context, child) {
-            final x = _c.value;
-            return Stack(
-              children: [
-                if (x > 0) Positioned.fill(child: _ActionStrip(actions: widget.leading, extent: x, leading: true, full: _pastFull, onTapped: close)),
-                if (x < 0) Positioned.fill(child: _ActionStrip(actions: widget.trailing, extent: -x, leading: false, full: _pastFull, onTapped: close)),
-                Transform.translate(offset: Offset(x, 0), child: child),
-              ],
-            );
-          },
-        ),
-      );
-    });
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onHorizontalDragUpdate: (d) => _onUpdate(d, width),
+          onHorizontalDragEnd: (d) => _onEnd(d, width),
+          child: AnimatedBuilder(
+            animation: _c,
+            child: widget.child,
+            builder: (context, child) {
+              final x = _c.value;
+              return Stack(
+                children: [
+                  if (x > 0)
+                    Positioned.fill(
+                      child: _ActionStrip(
+                        actions: widget.leading,
+                        extent: x,
+                        leading: true,
+                        full: _pastFull,
+                        onTapped: close,
+                      ),
+                    ),
+                  if (x < 0)
+                    Positioned.fill(
+                      child: _ActionStrip(
+                        actions: widget.trailing,
+                        extent: -x,
+                        leading: false,
+                        full: _pastFull,
+                        onTapped: close,
+                      ),
+                    ),
+                  Transform.translate(offset: Offset(x, 0), child: child),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 }
 
 class _ActionStrip extends StatelessWidget {
-  const _ActionStrip({required this.actions, required this.extent, required this.leading, required this.full, required this.onTapped});
+  const _ActionStrip({
+    required this.actions,
+    required this.extent,
+    required this.leading,
+    required this.full,
+    required this.onTapped,
+  });
 
   final List<SwipeAction> actions;
   final double extent;
@@ -154,9 +180,6 @@ class _ActionStrip extends StatelessWidget {
           ),
         ),
     ];
-    return Row(
-      mainAxisAlignment: leading ? MainAxisAlignment.start : MainAxisAlignment.end,
-      children: children,
-    );
+    return Row(mainAxisAlignment: leading ? MainAxisAlignment.start : MainAxisAlignment.end, children: children);
   }
 }

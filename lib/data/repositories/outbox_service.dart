@@ -59,7 +59,13 @@ class OutboxService {
     );
     await _chats.setLocalLast(
       chatId,
-      LastMessage(id: id, senderId: _uid, kind: payload.kind, preview: payload.preview, at: DateTime.fromMillisecondsSinceEpoch(now)),
+      LastMessage(
+        id: id,
+        senderId: _uid,
+        kind: payload.kind,
+        preview: payload.preview,
+        at: DateTime.fromMillisecondsSinceEpoch(now),
+      ),
     );
     unawaited(kick());
     return id;
@@ -165,9 +171,11 @@ class OutboxService {
     await _messages.setSendState(id, SendState.sent);
     _progress.remove(id)?.dispose();
     // Push notification via the Worker. Best effort; never blocks sending.
-    unawaited(_worker
-        .notify(chatId: chatId, messageId: id, preview: payload.preview, kind: payload.kind.name)
-        .catchError((_) {}));
+    unawaited(
+      _worker
+          .notify(chatId: chatId, messageId: id, preview: payload.preview, kind: payload.kind.name)
+          .catchError((_) {}),
+    );
   }
 
   /// Retry a message the user tapped (failed state).

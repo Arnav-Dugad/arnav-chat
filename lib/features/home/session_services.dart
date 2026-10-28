@@ -125,11 +125,6 @@ class _SessionServicesState extends ConsumerState<SessionServices> {
     });
     ref.listen(updateControllerProvider, (_, next) => _maybeShowUpdate(next));
 
-    return Stack(
-      children: [
-        widget.child,
-        const OfflineBanner(),
-      ],
-    );
+    return Stack(children: [widget.child, const OfflineBanner()]);
   }
 }

@@ -43,11 +43,9 @@ Future<void> initLocalNotifications({DidReceiveNotificationResponseCallback? onR
   );
   await _plugin
       .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(const AndroidNotificationChannel(
-        _channelId,
-        'Messages',
-        importance: Importance.high,
-      ));
+      ?.createNotificationChannel(
+        const AndroidNotificationChannel(_channelId, 'Messages', importance: Importance.high),
+      );
   _initialised = true;
 }
 
@@ -59,7 +57,9 @@ Future<void> showMessageNotification(Map<String, dynamic> data) async {
   final chatId = data['chatId'] as String?;
   if (chatId == null || chatId == activeChatId) return;
   await initLocalNotifications();
-  final sender = (data['senderName'] as String?)?.trim().isNotEmpty == true ? data['senderName'] as String : 'New message';
+  final sender = (data['senderName'] as String?)?.trim().isNotEmpty == true
+      ? data['senderName'] as String
+      : 'New message';
   final text = data['preview'] as String? ?? '';
   final id = notificationIdFor(chatId);
   final android = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
@@ -89,11 +89,7 @@ Future<void> showMessageNotification(Map<String, dynamic> data) async {
         color: const Color(0xFF2350E6),
         icon: 'ic_notification',
         actions: const [
-          AndroidNotificationAction(
-            actionReply,
-            'Reply',
-            inputs: [AndroidNotificationActionInput(label: 'Message')],
-          ),
+          AndroidNotificationAction(actionReply, 'Reply', inputs: [AndroidNotificationActionInput(label: 'Message')]),
           AndroidNotificationAction(actionRead, 'Mark read', cancelNotification: true),
         ],
       ),
@@ -133,7 +129,11 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 /// app process was killed.
 @pragma('vm:entry-point')
 Future<void> notificationBackgroundHandler(NotificationResponse response) async {
-  await handleNotificationAction(response);
+  try {
+    await handleNotificationAction(response);
+  } catch (e, s) {
+    debugPrint('notification action failed: $e\n$s');
+  }
 }
 
 Future<bool> handleNotificationAction(NotificationResponse response) async {
@@ -143,8 +143,19 @@ Future<bool> handleNotificationAction(NotificationResponse response) async {
   if (response.actionId != actionReply && response.actionId != actionRead) return false;
 
   if (Firebase.apps.isEmpty) await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  final uid = FirebaseAuth.instance.currentUser?.uid;
-  if (uid == null) return true;
+  // In a fresh background isolate the persisted session is restored
+  // asynchronously, so currentUser is briefly null.
+  final user =
+      FirebaseAuth.instance.currentUser ??
+      await FirebaseAuth.instance
+          .authStateChanges()
+          .firstWhere((u) => u != null)
+          .timeout(const Duration(seconds: 10), onTimeout: () => null);
+  final uid = user?.uid;
+  if (uid == null) {
+    debugPrint('notification action: no signed-in user');
+    return true;
+  }
   final refs = FirestoreRefs(FirebaseFirestore.instance);
 
   if (response.actionId == actionRead) {
