@@ -29,7 +29,6 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final canPop = showBack && (GoRouter.maybeOf(context)?.canPop() ?? Navigator.of(context).canPop());
     return GlassBar(
       top: true,
       child: SafeArea(
@@ -39,12 +38,8 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: NavigationToolbar(
             leading:
                 leading ??
-                (canPop
-                    ? GlassIconButton(
-                        icon: AppIcons.back,
-                        label: 'Back',
-                        onPressed: () => Navigator.of(context).maybePop(),
-                      )
+                (showBack
+                    ? GlassIconButton(icon: AppIcons.back, label: 'Back', onPressed: () => popOrHome(context))
                     : null),
             middle: titleWidget ?? (title == null ? null : Text(title!, style: context.text.titleMedium)),
             trailing: Row(mainAxisSize: MainAxisSize.min, children: actions),
@@ -53,5 +48,16 @@ class GlassAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
     );
+  }
+}
+
+/// Back, or — on a screen opened by a deep link with nothing beneath it —
+/// home to the chat list.
+void popOrHome(BuildContext context) {
+  final router = GoRouter.maybeOf(context);
+  if (router != null && !router.canPop()) {
+    router.go('/chats');
+  } else {
+    Navigator.of(context).maybePop();
   }
 }

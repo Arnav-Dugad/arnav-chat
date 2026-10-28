@@ -18,15 +18,42 @@ import '../../data/models/chat.dart';
 import '../../data/providers.dart';
 import '../home/home_shell.dart';
 import 'chat_providers.dart';
+import 'chat_list_widgets.dart';
 import 'chat_tile.dart';
 import 'large_title_header.dart';
 
-class ChatListScreen extends ConsumerWidget {
+class ChatListScreen extends ConsumerStatefulWidget {
   const ChatListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final chats = ref.watch(chatListProvider);
+  ConsumerState<ChatListScreen> createState() => _ChatListScreenState();
+}
+
+class _ChatListScreenState extends ConsumerState<ChatListScreen> {
+  /// null = "All".
+  String? _folderId;
+
+  Future<void> _compose() async {
+    final choice = await showComposeSheet(context);
+    if (!mounted || choice == null) return;
+    switch (choice) {
+      case 'chat':
+        context.push('/find');
+      case 'group':
+        context.push('/new-group');
+      case 'saved':
+        final id = await ref.read(chatRepositoryProvider).ensureDirect(ref.read(currentUidProvider)!);
+        if (mounted) context.push('/chat/$id');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final all = ref.watch(chatListProvider);
+    final folders = ref.watch(foldersProvider).value ?? const <ChatFolder>[];
+    final archived = ref.watch(archivedCountProvider).value ?? 0;
+    final folder = folders.where((f) => f.id == _folderId).firstOrNull;
+    final chats = folder == null ? all : all.whenData((list) => list.where(folder.matches).toList());
     final bottom = MediaQuery.paddingOf(context).bottom + HomeShell.tabBarHeight + 24;
 
     return Scaffold(
@@ -37,9 +64,21 @@ class ChatListScreen extends ConsumerWidget {
             title: 'Chats',
             actions: [
               GlassIconButton(icon: AppIcons.qr, label: 'QR code', onPressed: () => context.push('/qr')),
-              GlassIconButton(icon: AppIcons.compose, label: 'New chat', onPressed: () => context.push('/find')),
+              GlassIconButton(icon: AppIcons.compose, label: 'New', onPressed: _compose),
             ],
           ),
+          SliverToBoxAdapter(child: SearchPill(onTap: () => context.push('/search'))),
+          if (folders.isNotEmpty)
+            SliverToBoxAdapter(
+              child: FolderTabs(
+                folders: folders,
+                selected: _folderId,
+                onSelect: (id) {
+                  Haptics.select();
+                  setState(() => _folderId = id);
+                },
+              ),
+            ),
           CupertinoSliverRefreshControl(
             refreshTriggerPullDistance: 90,
             refreshIndicatorExtent: 64,
@@ -67,7 +106,13 @@ class ChatListScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            AsyncData(:final value) => _ChatSliverList(chats: value),
+            AsyncData(:final value) => SliverMainAxisGroup(
+              slivers: [
+                if (archived > 0 && folder == null)
+                  SliverToBoxAdapter(child: ArchivedRow(count: archived, onTap: () => context.push('/archived'))),
+                _ChatSliverList(key: ValueKey(_folderId), chats: value),
+              ],
+            ),
             _ => const SliverToBoxAdapter(child: ChatListSkeleton()),
           },
           SliverPadding(padding: EdgeInsets.only(bottom: bottom)),
@@ -105,7 +150,7 @@ class ChatListScreen extends ConsumerWidget {
 }
 
 class _ChatSliverList extends StatefulWidget {
-  const _ChatSliverList({required this.chats});
+  const _ChatSliverList({super.key, required this.chats});
 
   final List<ChatSummary> chats;
 

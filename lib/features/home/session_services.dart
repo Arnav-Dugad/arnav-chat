@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/router.dart';
 import '../../data/models/app_user.dart';
 import '../../data/providers.dart';
+import '../notifications/push_handlers.dart' show myUidPrefKey;
 import '../notifications/push_service.dart';
 import '../update/update_controller.dart';
 import '../update/update_sheet.dart';
@@ -82,6 +83,7 @@ class _SessionServicesState extends ConsumerState<SessionServices> {
       return;
     }
     _startedFor = me.uid;
+    unawaited(ref.read(sharedPrefsProvider).setString(myUidPrefKey, me.uid));
     final chats = ref.read(chatRepositoryProvider)..shareReadReceipts = me.privacy.readReceipts;
     unawaited(chats.startSync());
     unawaited(ref.read(outboxProvider).kick());

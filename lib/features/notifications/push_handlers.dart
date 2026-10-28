@@ -8,9 +8,11 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show Color;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/config/env.dart';
 import '../../data/models/message_payload.dart';
+import '../../data/repositories/chat_repository.dart' show mutedChatsPrefKey;
 import '../../data/remote/firestore_refs.dart';
 import '../../data/remote/message_writer.dart';
 import '../../firebase_options.dart';
@@ -53,10 +55,23 @@ FlutterLocalNotificationsPlugin get notificationsPlugin => _plugin;
 
 /// Shows (or appends to) a conversation-style notification for one chat, and
 /// keeps a group summary so several chats collapse together.
+/// SharedPreferences key holding my uid, so the background isolate can drop
+/// the echo of my own group messages without waiting for auth.
+const myUidPrefKey = 'myUid';
+
 Future<void> showMessageNotification(Map<String, dynamic> data) async {
   final chatId = data['chatId'] as String?;
   if (chatId == null || chatId == activeChatId) return;
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.reload(); // written by the main isolate
+  final me = prefs.getString(myUidPrefKey);
+  if (me != null && data['senderId'] == me) return;
+  final mentioned = me != null && (data['mentions'] as String? ?? '').split(',').contains(me);
+  final muted = prefs.getStringList(mutedChatsPrefKey)?.contains(chatId) ?? false;
+  if (muted && !mentioned) return;
   await initLocalNotifications();
+  final isGroup = data['chatType'] == 'group';
+  final chatName = data['chatName'] as String?;
   final sender = (data['senderName'] as String?)?.trim().isNotEmpty == true
       ? data['senderName'] as String
       : 'New message';
@@ -69,12 +84,14 @@ Future<void> showMessageNotification(Map<String, dynamic> data) async {
   final messages = <Message>[...?existing?.messages, Message(text, DateTime.now(), person)];
   final style = MessagingStyleInformation(
     const Person(name: 'You', key: 'me'),
+    conversationTitle: isGroup ? chatName : null,
+    groupConversation: isGroup,
     messages: messages.length > 8 ? messages.sublist(messages.length - 8) : messages,
   );
 
   await _plugin.show(
     id: id,
-    title: sender,
+    title: isGroup ? (chatName ?? sender) : sender,
     body: text,
     payload: jsonEncode({'chatId': chatId}),
     notificationDetails: NotificationDetails(
@@ -159,11 +176,13 @@ Future<bool> handleNotificationAction(NotificationResponse response) async {
   final refs = FirestoreRefs(FirebaseFirestore.instance);
 
   if (response.actionId == actionRead) {
+    final d = (await refs.chat(chatId).get()).data();
     await refs.chat(chatId).update({
-      'unread.$uid': 0,
+      if (d?['type'] == 'group') 'readSeq.$uid': (d?['seq'] as num?)?.toInt() ?? 0 else 'unread.$uid': 0,
       'readUpTo.$uid': FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     });
+    await cancelChatNotification(chatId);
     return true;
   }
 
@@ -172,6 +191,8 @@ Future<bool> handleNotificationAction(NotificationResponse response) async {
   final writer = MessageWriter(refs);
   final chat = await refs.chat(chatId).get();
   final members = List<String>.from(chat.data()?['members'] as List? ?? [uid]);
+  final group = chat.data()?['type'] == 'group';
+  final myName = ((await refs.user(uid).get()).data()?['displayName'] as String?) ?? 'Someone';
   final id = writer.newId(chatId);
   final payloadText = MessagePayload.text(text);
   await writer.send(
@@ -181,8 +202,10 @@ Future<bool> handleNotificationAction(NotificationResponse response) async {
     members: members,
     payload: payloadText,
     clientTs: DateTime.now().millisecondsSinceEpoch,
+    group: group,
+    senderName: myName,
   );
-  await refs.chat(chatId).update({'unread.$uid': 0, 'updatedAt': FieldValue.serverTimestamp()});
+  if (!group) await refs.chat(chatId).update({'unread.$uid': 0, 'updatedAt': FieldValue.serverTimestamp()});
   await cancelChatNotification(chatId);
   if (Env.hasWorker) {
     try {

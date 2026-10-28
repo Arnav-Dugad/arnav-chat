@@ -37,6 +37,13 @@
 - Find people by **@username** or by scanning a **QR code**
 - Push notifications with inline reply and per-chat grouping
 
+**Groups & organising** (v1.1)
+- Groups with admins, member list, photo, description and shareable invite links
+- @mentions (they break through mute), polls, pinned messages
+- Search across all chats or inside one; per-chat media / links / files / voice gallery
+- Pin, archive and mute chats; custom chat folders; Saved Messages
+- Per-chat wallpapers and accent colours
+
 **Design**
 - Apple-like glass UI: frosted bars, sheets and menus, continuous-corner squircles
 - Light / dark themes and six accent colours; Inter typography; Phosphor icons
@@ -131,7 +138,7 @@ Required repository secrets: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWO
 
 ## Roadmap
 
-- **Phase B** — groups, pinned messages, polls, search, media gallery, folders, Saved Messages, wallpapers
+- ~~**Phase B** — groups, pinned messages, polls, search, media gallery, folders, Saved Messages, wallpapers~~ (v1.1.0)
 - **Phase C** — stories, disappearing & scheduled messages, synced drafts, app lock, full privacy controls
 - **Later** — voice/video calls (WebRTC), end-to-end encryption, web & desktop
 

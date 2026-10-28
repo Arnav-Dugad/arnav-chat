@@ -81,7 +81,12 @@ class SettingsRow extends StatelessWidget {
               ),
               const SizedBox(width: Gaps.x3),
               Expanded(
-                child: Text(label, style: context.text.bodyLarge?.copyWith(color: destructive ? p.danger : p.text)),
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.text.bodyLarge?.copyWith(color: destructive ? p.danger : p.text),
+                ),
               ),
               if (value != null) Text(value!, style: context.text.bodyMedium?.copyWith(color: p.textMuted)),
               if (trailing != null)

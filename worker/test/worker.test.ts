@@ -44,3 +44,15 @@ describe('routing & auth', () => {
     expect(res.status).toBe(401);
   });
 });
+
+describe('invite landing page', () => {
+  it('serves a deep-link page for a valid code', async () => {
+    const res = await worker.fetch(new Request('https://w/j/AbCdEfGh2345678'), {} as never);
+    expect(res.status).toBe(200);
+    expect(await res.text()).toContain('arnavchat://app/join/AbCdEfGh2345678');
+  });
+  it('rejects malformed codes', async () => {
+    const res = await worker.fetch(new Request('https://w/j/<script>'), {} as never);
+    expect(res.status).not.toBe(200);
+  });
+});

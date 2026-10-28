@@ -83,6 +83,21 @@ class SettingsScreen extends ConsumerWidget {
                   onTap: () => context.push('/settings/privacy'),
                 ),
                 SettingsRow(
+                  icon: AppIcons.bookmarkFill,
+                  label: 'Saved Messages',
+                  color: const Color(0xFF2F8FEA),
+                  onTap: () async {
+                    final id = await ref.read(chatRepositoryProvider).ensureDirect(me.uid);
+                    if (context.mounted) context.push('/chat/$id');
+                  },
+                ),
+                SettingsRow(
+                  icon: AppIcons.folder,
+                  label: 'Chat folders',
+                  color: const Color(0xFF0E9AA7),
+                  onTap: () => context.push('/settings/folders'),
+                ),
+                SettingsRow(
                   icon: AppIcons.starFill,
                   label: 'Starred',
                   color: const Color(0xFFF0A63A),

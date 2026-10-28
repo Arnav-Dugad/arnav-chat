@@ -8,6 +8,7 @@ import '../../../core/widgets/glass.dart';
 import '../../../data/models/message.dart';
 import '../../../data/models/message_payload.dart';
 import 'media_content.dart';
+import 'poll_content.dart';
 import 'receipt_ticks.dart';
 
 /// Visual bubble (no gestures) — reused by the context menu "lifted" copy.
@@ -20,6 +21,10 @@ class BubbleBody extends StatelessWidget {
     this.first = true,
     this.last = true,
     this.replyAuthor,
+    this.senderName,
+    this.senderColor,
+    this.myUid = '',
+    this.onVote,
   });
 
   final Message message;
@@ -28,6 +33,12 @@ class BubbleBody extends StatelessWidget {
   final bool first;
   final bool last;
   final String? replyAuthor;
+
+  /// Groups: author name above the first incoming bubble of a run.
+  final String? senderName;
+  final Color? senderColor;
+  final String myUid;
+  final void Function(String optionId)? onVote;
 
   BorderRadius get radius {
     const big = Radius.circular(Radii.bubble);
@@ -80,6 +91,16 @@ class BubbleBody extends StatelessWidget {
     }
 
     final children = <Widget>[
+      if (senderName != null && !mine)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 2),
+          child: Text(
+            senderName!,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: context.text.labelMedium?.copyWith(color: senderColor ?? p.primary, fontWeight: FontWeight.w600),
+          ),
+        ),
       if (message.forwarded)
         Padding(
           padding: const EdgeInsets.only(bottom: 4),
@@ -196,6 +217,16 @@ class BubbleBody extends StatelessWidget {
           const SizedBox(height: 4),
           Align(alignment: Alignment.centerRight, widthFactor: 1, child: meta),
         ];
+      case MessageKind.poll:
+        return [
+          if (payload.poll != null)
+            PollContent(message: message, mine: mine, myUid: myUid, onVote: onVote ?? (_) {})
+          else
+            Text(payload.text ?? '', style: textStyle),
+          Align(alignment: Alignment.centerRight, widthFactor: 1, child: meta),
+        ];
+      case MessageKind.system:
+        return [Text(payload.text ?? '', style: textStyle.copyWith(color: sub))];
     }
   }
 }

@@ -22,7 +22,7 @@ import 'message_repository.dart';
 /// fails for network reasons stays queued and is retried when connectivity
 /// returns or the app restarts.
 class OutboxService {
-  OutboxService(this._messages, this._chats, this._writer, this._uploader, this._worker, this._uid);
+  OutboxService(this._messages, this._chats, this._writer, this._uploader, this._worker, this._uid, this._myName);
 
   final MessageRepository _messages;
   final ChatRepository _chats;
@@ -30,6 +30,7 @@ class OutboxService {
   final MediaUploader _uploader;
   final WorkerApi _worker;
   final String _uid;
+  final String Function() _myName;
 
   final _progress = <String, ValueNotifier<double>>{};
   bool _running = false;
@@ -139,6 +140,8 @@ class OutboxService {
         clientTs: row.createdAt,
         reply: reply,
         forwarded: row.forwarded,
+        group: chat.type == 'group',
+        senderName: _myName(),
       );
       try {
         await commit.timeout(const Duration(seconds: 12));
@@ -162,7 +165,13 @@ class OutboxService {
     } on DioException {
       return false;
     } catch (e) {
+      // Not a network problem (e.g. a malformed write). Retry a few times,
+      // then fail the message so it cannot block everything queued after it.
       debugPrint('outbox: $e');
+      if (row.attempts >= 3) {
+        await _messages.setSendState(row.id, SendState.failed);
+        return true;
+      }
       return false;
     }
   }
@@ -173,7 +182,7 @@ class OutboxService {
     // Push notification via the Worker. Best effort; never blocks sending.
     unawaited(
       _worker
-          .notify(chatId: chatId, messageId: id, preview: payload.preview, kind: payload.kind.name)
+          .notify(chatId: chatId, messageId: id, preview: payload.preview, kind: payload.kind.name, mentions: payload.mentions)
           .catchError((_) {}),
     );
   }

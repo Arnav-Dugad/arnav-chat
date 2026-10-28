@@ -4,20 +4,25 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../app/router.dart';
 import '../../core/design/haptics.dart';
 import '../../core/design/icons.dart';
 import '../../core/design/palette.dart';
+import '../../core/design/tokens.dart';
+import '../../core/design/wallpapers.dart';
 import '../../core/utils/time_format.dart';
+import '../../core/widgets/avatar.dart';
+import '../../core/widgets/buttons.dart';
 import '../../core/widgets/glass.dart';
 import '../../core/widgets/glass_sheet.dart';
 import '../../core/widgets/measure_size.dart';
-import '../../core/widgets/buttons.dart';
 import '../../core/widgets/toast.dart';
 import '../../data/media/media_prep.dart';
 import '../../data/models/app_user.dart';
+import '../../data/models/chat.dart';
 import '../../data/models/message.dart';
 import '../../data/models/message_payload.dart';
 import '../../data/providers.dart';
@@ -32,16 +37,37 @@ import 'widgets/bubble_body.dart';
 import 'widgets/day_separator.dart';
 import 'widgets/forward_sheet.dart';
 import 'widgets/input_bar.dart';
+import 'widgets/mention_suggestions.dart';
 import 'widgets/message_bubble.dart';
 import 'widgets/message_menu.dart';
+import 'widgets/pinned_banner.dart';
+import 'widgets/poll_composer.dart';
+import 'widgets/system_message.dart';
 import 'widgets/typing_bubble.dart';
 import 'widgets/voice_recorder.dart';
 
+/// Stable colour per group member for sender labels.
+Color senderColor(String uid) {
+  const colors = [
+    Color(0xFF2F8FEA),
+    Color(0xFF15A37A),
+    Color(0xFFE0525F),
+    Color(0xFFD9861C),
+    Color(0xFF8A63D2),
+    Color(0xFF0E9AA7),
+    Color(0xFFC2459B),
+  ];
+  return colors[uid.hashCode.abs() % colors.length];
+}
+
 class ChatScreen extends ConsumerStatefulWidget {
-  const ChatScreen({super.key, required this.chatId, this.args});
+  const ChatScreen({super.key, required this.chatId, this.args, this.focusMessageId});
 
   final String chatId;
   final ChatRouteArgs? args;
+
+  /// Open scrolled to this message (from search / pins / gallery).
+  final String? focusMessageId;
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -67,6 +93,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
   String? _linkUrl;
   final _dismissedLinks = <String>{};
   Timer? _linkTimer;
+  String? _mentionQuery;
+
+  /// Message to scroll to and briefly highlight.
+  String? _focusId;
+  final _focusKey = GlobalKey();
 
   StreamSubscription<void>? _live;
   bool _attaching = false;
@@ -83,6 +114,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
     return parts.length == 2 ? (parts.first == _me ? parts.last : parts.first) : null;
   }
 
+  ChatSummary? get _chat => ref.read(chatSummaryProvider(_chatId)).value;
+  bool get _isGroup => _chat?.isGroup ?? false;
+  Map<String, AppUser> get _members => ref.read(chatMembersProvider(_chatId)).value ?? const {};
+
   @override
   void initState() {
     super.initState();
@@ -90,16 +125,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
     activeChatId = _chatId;
     cancelChatNotification(_chatId);
     _scroll.addListener(_onScroll);
+    _text.addListener(_onCaret);
     _boot();
   }
 
   Future<void> _boot() async {
     final chats = ref.read(chatRepositoryProvider);
-    if (await chats.chatRow(_chatId) == null && _peerUid != null) await chats.ensureDirect(_peerUid!);
-    final row = await chats.chatRow(_chatId);
+    var row = await chats.chatRow(_chatId);
+    if (row == null && _peerUid != null) await chats.ensureDirect(_peerUid!);
+    if (row == null && _peerUid == null) await chats.fetchOne(_chatId).catchError((_) {});
+    row = await chats.chatRow(_chatId);
+    if (row?.type == 'group') unawaited(ref.read(presenceProvider).registerGroupMember(_chatId).catchError((_) {}));
     if (row?.draft != null && _text.text.isEmpty) _text.text = row!.draft!;
     await _attach();
     _scheduleRead();
+    if (widget.focusMessageId != null) unawaited(_jumpTo(widget.focusMessageId!));
   }
 
   Future<void> _attach() async {
@@ -147,7 +187,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
     super.dispose();
   }
 
-  // ---------- paging ----------
+  // ---------- paging & jumping ----------
 
   void _onScroll() {
     final pos = _scroll.position;
@@ -167,7 +207,45 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
     _loadingMore = false;
   }
 
+  /// Scrolls to a cached message, growing the window if needed, then flashes it.
+  Future<void> _jumpTo(String messageId) async {
+    final pos = await ref.read(messageRepositoryProvider).positionOf(_chatId, messageId);
+    if (!mounted) return;
+    if (pos < 0) {
+      showToast(context, 'Not loaded', icon: AppIcons.clock);
+      return;
+    }
+    setState(() {
+      _focusId = messageId;
+      if (pos + 10 > _limit) _limit = pos + 20;
+    });
+    // Rough position first (lazy list), then precise once the bubble is built.
+    for (var attempt = 0; attempt < 6; attempt++) {
+      await Future<void>.delayed(const Duration(milliseconds: 60));
+      if (!mounted) return;
+      final ctx = _focusKey.currentContext;
+      if (ctx != null) {
+        // ignore: use_build_context_synchronously
+        await Scrollable.ensureVisible(ctx, alignment: 0.4, duration: const Duration(milliseconds: 360), curve: Curves.easeOutCubic);
+        break;
+      }
+      if (_scroll.hasClients) {
+        _scroll.jumpTo((pos * 68.0).clamp(0, _scroll.position.maxScrollExtent));
+      }
+    }
+    Haptics.tick();
+    Future.delayed(const Duration(milliseconds: 1600), () {
+      if (mounted && _focusId == messageId) setState(() => _focusId = null);
+    });
+  }
+
   // ---------- composing ----------
+
+  void _onCaret() {
+    if (!_isGroup) return;
+    final q = mentionQuery(_text.value);
+    if (q != _mentionQuery) setState(() => _mentionQuery = q);
+  }
 
   void _onChanged(String text) {
     final now = DateTime.now();
@@ -199,12 +277,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
 
   ReplyRef? get _replyRef => _reply == null
       ? null
-      : ReplyRef(
-          id: _reply!.id,
-          senderId: _reply!.senderId,
-          preview: _reply!.payload.preview,
-          kind: _reply!.payload.kind,
-        );
+      : ReplyRef(id: _reply!.id, senderId: _reply!.senderId, preview: _reply!.payload.preview, kind: _reply!.payload.kind);
 
   Future<void> _send() async {
     final text = _text.text.trim();
@@ -217,22 +290,20 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
     }
     final link = (_link != null && text.contains(_link!.url)) ? _link : null;
     final reply = _replyRef;
+    final mentions = _isGroup ? mentionedUids(text, _members.values.where((u) => u.uid != _me)) : const <String>[];
     _text.clear();
     setState(() {
       _reply = null;
       _link = null;
       _linkUrl = null;
+      _mentionQuery = null;
     });
     _typingOff?.cancel();
     _typingSentAt = DateTime.fromMillisecondsSinceEpoch(0);
     ref.read(presenceProvider).setTyping(_chatId, false).catchError((_) {});
     await ref
         .read(outboxProvider)
-        .send(
-          chatId: _chatId,
-          payload: MessagePayload.text(text, link: link),
-          reply: reply,
-        );
+        .send(chatId: _chatId, payload: MessagePayload.text(text, link: link, mentions: mentions), reply: reply);
     _toBottom();
   }
 
@@ -317,21 +388,49 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
             media: MediaRef(url: '', name: f.name, bytes: await f.length()),
           ),
         );
+      case AttachKind.poll:
+        final poll = await showPollComposer(context);
+        if (poll == null) return;
+        await outbox.send(chatId: _chatId, payload: MessagePayload.poll(poll));
     }
     _toBottom();
   }
 
   // ---------- message actions ----------
 
+  bool get _canPin => !_isGroup || (_chat?.isAdmin(_me) ?? false);
+
+  Future<void> _togglePin(Message m) async {
+    final chat = _chat;
+    if (chat == null) return;
+    final pins = [...chat.pinnedMessages];
+    final existing = pins.indexWhere((p) => p.id == m.id);
+    if (existing >= 0) {
+      pins.removeAt(existing);
+    } else {
+      if (pins.length >= 5) pins.removeAt(0);
+      pins.add(PinnedMessage(id: m.id, senderId: m.senderId, preview: m.payload.preview));
+    }
+    try {
+      await ref.read(messageWriterProvider).setPins(_chatId, [for (final p in pins) p.toJson()]);
+      Haptics.success();
+      if (mounted) showToast(context, existing >= 0 ? 'Unpinned' : 'Pinned', icon: AppIcons.pin);
+    } catch (_) {
+      if (mounted) showToast(context, 'Not allowed', error: true);
+    }
+  }
+
   Future<void> _openMenu(Message m, GlobalKey key, Receipt receipt, bool first, bool last) async {
     FocusScope.of(context).unfocus();
     final mine = m.senderId == _me;
     final isText = m.payload.kind == MessageKind.text;
+    final pinned = _chat?.pinnedMessages.any((p) => p.id == m.id) ?? false;
     final actions = <MenuAction>[
       if (!m.deletedForEveryone) const MenuAction('reply', 'Reply', AppIcons.reply),
       if (isText && !m.deletedForEveryone) const MenuAction('copy', 'Copy', AppIcons.copy),
-      if (mine && isText && !m.deletedForEveryone && m.state == SendState.sent)
-        const MenuAction('edit', 'Edit', AppIcons.edit),
+      if (mine && isText && !m.deletedForEveryone && m.state == SendState.sent) const MenuAction('edit', 'Edit', AppIcons.edit),
+      if (!m.deletedForEveryone && _canPin && m.serverConfirmed)
+        MenuAction('pin', pinned ? 'Unpin' : 'Pin', pinned ? AppIcons.pinFill : AppIcons.pin),
       if (!m.deletedForEveryone) const MenuAction('forward', 'Forward', AppIcons.forward),
       if (!m.deletedForEveryone)
         MenuAction('star', m.starred ? 'Unstar' : 'Star', m.starred ? AppIcons.starFill : AppIcons.star),
@@ -350,6 +449,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
         first: first,
         last: last,
         replyAuthor: _authorName(m.reply?.senderId),
+        myUid: _me,
       ),
     );
     if (!mounted || result == null) return;
@@ -370,6 +470,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
         });
         _text.text = m.payload.text ?? '';
         _focus.requestFocus();
+      case ActionResult(id: 'pin'):
+        await _togglePin(m);
       case ActionResult(id: 'forward'):
         final target = await showForwardSheet(context);
         if (target != null) {
@@ -396,11 +498,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
           mainAxisSize: MainAxisSize.min,
           children: [
             if (everyone)
-              PillButton(
-                label: 'Delete for everyone',
-                style: PillStyle.danger,
-                onPressed: () => Navigator.pop(ctx, 'all'),
-              ),
+              PillButton(label: 'Delete for everyone', style: PillStyle.danger, onPressed: () => Navigator.pop(ctx, 'all')),
             PillButton(label: 'Delete for me', style: PillStyle.danger, onPressed: () => Navigator.pop(ctx, 'me')),
             PillButton(label: 'Cancel', style: PillStyle.ghost, onPressed: () => Navigator.pop(ctx)),
           ],
@@ -425,7 +523,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
   String? _authorName(String? uid) {
     if (uid == null) return null;
     if (uid == _me) return 'You';
-    return _peer?.displayName;
+    return _members[uid]?.displayName ?? _peer?.displayName;
   }
 
   AppUser? get _peer {
@@ -437,13 +535,40 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
 
   @override
   Widget build(BuildContext context) {
+    final chat = ref.watch(chatSummaryProvider(_chatId)).value;
+    final accent = chat?.accent == null ? null : AccentColor.fromName(chat!.accent);
+    final base = Theme.of(context);
+    if (accent == null || accent == context.palette.accent) return _buildChat(context, chat);
+    // Per-chat colour: same theme, different accent, only inside this chat.
+    final palette = context.palette.copyWith(accent: accent);
+    return Theme(
+      data: base.copyWith(
+        extensions: [palette],
+        colorScheme: base.colorScheme.copyWith(primary: accent.base),
+        textSelectionTheme: base.textSelectionTheme.copyWith(cursorColor: accent.base),
+      ),
+      child: Builder(builder: (context) => _buildChat(context, chat)),
+    );
+  }
+
+  Widget _buildChat(BuildContext context, ChatSummary? chat) {
     final p = context.palette;
-    final peerUid = _peerUid;
+    final isGroup = chat?.isGroup ?? false;
+    final peerUid = isGroup ? null : _peerUid;
     final peer = peerUid == null ? null : (ref.watch(cachedUserProvider(peerUid)).value ?? widget.args?.peer);
     final row = ref.watch(chatRowProvider(_chatId)).value;
-    final typing =
-        peerUid != null && peerUid != _me && (ref.watch(peerTypingProvider(_chatId, peerUid)).value ?? false);
+    final members = isGroup ? (ref.watch(chatMembersProvider(_chatId)).value ?? const <String, AppUser>{}) : const <String, AppUser>{};
+    final List<String> typingNames;
+    if (isGroup) {
+      final uids = ref.watch(groupTypingProvider(_chatId)).value ?? const [];
+      typingNames = [for (final u in uids) members[u]?.displayName.split(' ').first ?? 'Someone'];
+    } else {
+      final typing = peerUid != null && peerUid != _me && (ref.watch(peerTypingProvider(_chatId, peerUid)).value ?? false);
+      typingNames = typing ? [peer?.displayName ?? ''] : const [];
+    }
     _messages = ref.watch(chatMessagesProvider(_chatId, _limit)).value ?? _messages;
+    final left = row?.left ?? false;
+    final pins = chat?.pinnedMessages ?? const <PinnedMessage>[];
 
     ref.listen(chatRowProvider(_chatId), (prev, next) {
       final r = next.value;
@@ -452,12 +577,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
       if (r.unread > 0) _scheduleRead();
     });
 
-    final deliveredUpTo = row?.peerDeliveredUpTo == null
-        ? null
-        : DateTime.fromMillisecondsSinceEpoch(row!.peerDeliveredUpTo!);
+    final deliveredUpTo = row?.peerDeliveredUpTo == null ? null : DateTime.fromMillisecondsSinceEpoch(row!.peerDeliveredUpTo!);
     final readUpTo = row?.peerReadUpTo == null ? null : DateTime.fromMillisecondsSinceEpoch(row!.peerReadUpTo!);
-    final top = MediaQuery.paddingOf(context).top + 60;
+    final headerH = MediaQuery.paddingOf(context).top + 60;
+    final top = headerH + (pins.isEmpty ? 0 : 48);
     final firstBuild = _seen.isEmpty;
+
+    final mentionCandidates = _mentionQuery == null
+        ? const <AppUser>[]
+        : members.values
+              .where((u) => u.uid != _me)
+              .where((u) => u.username.startsWith(_mentionQuery!) || u.displayName.toLowerCase().contains(_mentionQuery!))
+              .take(6)
+              .toList();
 
     final list = ListView.builder(
       controller: _scroll,
@@ -466,65 +598,87 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
       padding: EdgeInsets.only(top: top + 8, bottom: _inputHeight + 6),
       itemCount: _messages.length + 1,
       itemBuilder: (context, i) {
-        if (i == 0) return TypingBubble(visible: typing);
+        if (i == 0) return TypingBubble(visible: typingNames.isNotEmpty);
         final idx = i - 1;
         final m = _messages[idx];
         final older = idx + 1 < _messages.length ? _messages[idx + 1] : null;
         final newer = idx > 0 ? _messages[idx - 1] : null;
-        bool grouped(Message? a, Message b) =>
-            a != null &&
-            a.senderId == b.senderId &&
-            b.createdAt.difference(a.createdAt).abs() < const Duration(minutes: 3) &&
-            TimeFormat.sameDay(a.createdAt, b.createdAt);
-        final first = !grouped(older, m);
-        final last = newer == null || !grouped(m, newer);
-        final mine = m.senderId == _me;
-        final receipt = m.receipt(deliveredUpTo: deliveredUpTo, readUpTo: readUpTo);
-        final isNew =
-            !firstBuild && !_seen.contains(m.id) && m.createdAt.isAfter(_openedAt.subtract(const Duration(seconds: 2)));
+        final showDay = older == null || !TimeFormat.sameDay(older.createdAt, m.createdAt);
         _seen.add(m.id);
 
-        final bubble = MessageBubble(
-          key: ValueKey(m.id),
-          message: m,
-          mine: mine,
-          receipt: receipt,
-          myUid: _me,
-          first: first,
-          last: last,
-          animateIn: isNew,
-          replyAuthor: _authorName(m.reply?.senderId),
-          dissolving: _dissolving.containsKey(m.id),
-          onDissolved: () {
-            final act = _dissolving.remove(m.id);
-            act?.call();
-            if (mounted) setState(() {});
-          },
-          onReply: () {
-            setState(() => _reply = m);
-            _focus.requestFocus();
-          },
-          onLongPress: (key) => _openMenu(m, key, receipt, first, last),
-          onDoubleTap: () {
-            if (m.reactions[_me] != '❤️') ref.read(messageRepositoryProvider).react(_chatId, m.id, '❤️');
-          },
-          onReact: (e) => ref.read(messageRepositoryProvider).react(_chatId, m.id, m.reactions[_me] == e ? null : e),
-          onRetry: () => ref.read(outboxProvider).retry(m.id),
-        );
-        final showDay = older == null || !TimeFormat.sameDay(older.createdAt, m.createdAt);
-        return showDay
-            ? Column(
-                children: [
-                  DaySeparator(date: m.createdAt),
-                  bubble,
-                ],
-              )
-            : bubble;
+        Widget item;
+        if (m.payload.kind == MessageKind.system) {
+          item = SystemMessage(key: ValueKey(m.id), text: m.payload.text ?? '');
+        } else {
+          bool grouped(Message? a, Message b) =>
+              a != null &&
+              a.payload.kind != MessageKind.system &&
+              a.senderId == b.senderId &&
+              b.createdAt.difference(a.createdAt).abs() < const Duration(minutes: 3) &&
+              TimeFormat.sameDay(a.createdAt, b.createdAt);
+          final first = !grouped(older, m);
+          final last = newer == null || !grouped(m, newer);
+          final mine = m.senderId == _me;
+          final receipt = m.receipt(deliveredUpTo: deliveredUpTo, readUpTo: readUpTo);
+          final isNew =
+              !firstBuild && !_seen.contains('${m.id}#') && m.createdAt.isAfter(_openedAt.subtract(const Duration(seconds: 2)));
+          _seen.add('${m.id}#');
+          final sender = members[m.senderId];
+
+          item = MessageBubble(
+            key: ValueKey(m.id),
+            message: m,
+            mine: mine,
+            receipt: receipt,
+            myUid: _me,
+            first: first,
+            last: last,
+            animateIn: isNew,
+            replyAuthor: _authorName(m.reply?.senderId),
+            senderName: isGroup ? (sender?.displayName ?? '…') : null,
+            senderColor: isGroup ? senderColor(m.senderId) : null,
+            avatar: isGroup ? Avatar(name: sender?.displayName ?? '?', url: sender?.photoUrl, size: 30) : null,
+            onVote: (id) => ref.read(messageRepositoryProvider).vote(m, id),
+            dissolving: _dissolving.containsKey(m.id),
+            onDissolved: () {
+              final act = _dissolving.remove(m.id);
+              act?.call();
+              if (mounted) setState(() {});
+            },
+            onReply: () {
+              setState(() => _reply = m);
+              _focus.requestFocus();
+            },
+            onLongPress: (key) => _openMenu(m, key, receipt, first, last),
+            onDoubleTap: () {
+              if (m.reactions[_me] != '❤️') ref.read(messageRepositoryProvider).react(_chatId, m.id, '❤️');
+            },
+            onReact: (e) => ref.read(messageRepositoryProvider).react(_chatId, m.id, m.reactions[_me] == e ? null : e),
+            onRetry: () => ref.read(outboxProvider).retry(m.id),
+          );
+        }
+        if (m.id == _focusId) {
+          item = KeyedSubtree(
+            key: _focusKey,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 1, end: 0),
+              duration: const Duration(milliseconds: 1500),
+              builder: (_, t, child) => DecoratedBox(
+                decoration: BoxDecoration(color: p.primary.withValues(alpha: 0.18 * t)),
+                child: child,
+              ),
+              child: item,
+            ),
+          );
+        }
+        return showDay ? Column(children: [DaySeparator(date: m.createdAt), item]) : item;
       },
     );
     if (firstBuild) {
       for (final m in _messages) {
-        _seen.add(m.id);
+        _seen
+          ..add(m.id)
+          ..add('${m.id}#');
       }
     }
 
@@ -532,32 +686,40 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
       resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: const Alignment(0.9, -1.1),
-                  radius: 1.4,
-                  colors: [
-                    p.primary.withValues(alpha: p.isDark ? 0.10 : 0.07),
-                    p.bg,
-                  ],
-                ),
-              ),
-            ),
-          ),
+          Positioned.fill(child: ChatWallpaper(wallpaper: Wallpaper.fromName(chat?.wallpaper))),
           Positioned.fill(child: list),
           Positioned(
             top: 0,
             left: 0,
             right: 0,
-            child: ChatHeader(
-              chatId: _chatId,
-              peerUid: peerUid,
-              peer: peer,
-              typing: typing,
-              heroTag: widget.args?.heroTag ?? ChatTile.heroAvatar(_chatId),
-              nameTag: ChatTile.heroName(_chatId),
+            child: Column(
+              children: [
+                ChatHeader(
+                  chatId: _chatId,
+                  chat: chat,
+                  peer: peer,
+                  typingNames: typingNames,
+                  heroTag: widget.args?.heroTag ?? ChatTile.heroAvatar(_chatId),
+                  nameTag: ChatTile.heroName(_chatId),
+                  onSearch: () => context.push('/search?chat=$_chatId'),
+                ),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 240),
+                  curve: Curves.easeOutCubic,
+                  child: pins.isEmpty
+                      ? const SizedBox(width: double.infinity)
+                      : PinnedBanner(
+                          pins: pins,
+                          onJump: (pin) => _jumpTo(pin.id),
+                          onUnpin: _canPin
+                              ? (pin) async {
+                                  final m = await ref.read(messageRepositoryProvider).byId(pin.id);
+                                  if (m != null) await _togglePin(m);
+                                }
+                              : null,
+                        ),
+                ),
+              ],
             ),
           ),
           Positioned(
@@ -581,33 +743,66 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with WidgetsBindingObse
               onChange: (s) {
                 if (mounted && (s.height - _inputHeight).abs() > 0.5) setState(() => _inputHeight = s.height);
               },
-              child: InputBar(
-                controller: _text,
-                focusNode: _focus,
-                onSend: _send,
-                onAttach: _attachMedia,
-                onVoice: _sendVoice,
-                onChanged: _onChanged,
-                reply: _reply,
-                replyAuthor: _authorName(_reply?.senderId),
-                editing: _editing,
-                link: _link,
-                onCancelReply: () => setState(() => _reply = null),
-                onCancelEdit: () {
-                  setState(() => _editing = null);
-                  _text.clear();
-                },
-                onDismissLink: () => setState(() {
-                  if (_linkUrl != null) _dismissedLinks.add(_linkUrl!);
-                  _link = null;
-                }),
-              ),
+              child: left
+                  ? const _LeftBar()
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        MentionSuggestions(
+                          users: mentionCandidates,
+                          onPick: (u) {
+                            Haptics.select();
+                            _text.value = insertMention(_text.value, u.username);
+                            setState(() => _mentionQuery = null);
+                          },
+                        ),
+                        if (mentionCandidates.isNotEmpty) const SizedBox(height: Gaps.x2),
+                        InputBar(
+                          controller: _text,
+                          focusNode: _focus,
+                          onSend: _send,
+                          onAttach: _attachMedia,
+                          onVoice: _sendVoice,
+                          onChanged: _onChanged,
+                          reply: _reply,
+                          replyAuthor: _authorName(_reply?.senderId),
+                          editing: _editing,
+                          link: _link,
+                          onCancelReply: () => setState(() => _reply = null),
+                          onCancelEdit: () {
+                            setState(() => _editing = null);
+                            _text.clear();
+                          },
+                          onDismissLink: () => setState(() {
+                            if (_linkUrl != null) _dismissedLinks.add(_linkUrl!);
+                            _link = null;
+                          }),
+                        ),
+                      ],
+                    ),
             ),
           ),
         ],
       ),
     );
   }
+}
+
+class _LeftBar extends StatelessWidget {
+  const _LeftBar();
+
+  @override
+  Widget build(BuildContext context) => GlassBar(
+    child: SafeArea(
+      top: false,
+      child: SizedBox(
+        height: 60,
+        child: Center(
+          child: Text('You are no longer a member', style: context.text.labelLarge?.copyWith(color: context.palette.textMuted)),
+        ),
+      ),
+    ),
+  );
 }
 
 class _JumpButton extends StatelessWidget {

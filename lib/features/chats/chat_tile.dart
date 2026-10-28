@@ -7,15 +7,16 @@ import '../../core/design/icons.dart';
 import '../../core/design/palette.dart';
 import '../../core/design/tokens.dart';
 import '../../core/utils/time_format.dart';
-import '../../core/widgets/avatar.dart';
 import '../../core/widgets/count_badge.dart';
 import '../../core/widgets/pressable.dart';
 import '../../core/widgets/swipe_actions.dart';
 import '../../core/widgets/toast.dart';
 import '../../data/models/chat.dart';
 import '../../data/models/message.dart';
+import '../../data/models/message_payload.dart';
 import '../../data/providers.dart';
 import '../chat/widgets/receipt_ticks.dart';
+import 'chat_avatar.dart';
 import 'chat_providers.dart';
 
 class ChatTile extends ConsumerWidget {
@@ -31,7 +32,7 @@ class ChatTile extends ConsumerWidget {
     final p = context.palette;
     final me = ref.watch(currentUidProvider);
     final repo = ref.read(chatRepositoryProvider);
-    final peerUid = chat.peerUid;
+    final peerUid = chat.isGroup || chat.isSaved ? null : chat.peerUid;
     final online =
         peerUid != null && peerUid != me && (ref.watch(peerPresenceProvider(peerUid)).value?.online ?? false);
     final typing = peerUid != null && peerUid != me && (ref.watch(peerTypingProvider(chat.id, peerUid)).value ?? false);
@@ -66,7 +67,10 @@ class ChatTile extends ConsumerWidget {
                 ],
                 Expanded(
                   child: Text(
-                    chat.draft ?? last?.preview ?? '',
+                    chat.draft ??
+                        (chat.isGroup && last?.senderName != null && last!.kind != MessageKind.system
+                            ? '${mine ? 'You' : last.senderName!.split(' ').first}: ${last.preview}'
+                            : last?.preview ?? ''),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: context.text.bodyMedium?.copyWith(color: p.textMuted),
@@ -94,11 +98,11 @@ class ChatTile extends ConsumerWidget {
         ),
         SwipeAction(
           icon: AppIcons.archive,
-          label: 'Archive',
+          label: chat.archived ? 'Unarchive' : 'Archive',
           color: const Color(0xFFF0A63A),
           onTap: () {
-            repo.setArchived(chat.id, true);
-            showToast(context, 'Archived', icon: AppIcons.archive);
+            repo.setArchived(chat.id, !chat.archived);
+            showToast(context, chat.archived ? 'Unarchived' : 'Archived', icon: AppIcons.archive);
           },
         ),
         SwipeAction(icon: AppIcons.trash, label: 'Delete', color: p.danger, onTap: () => repo.clearForMe(chat.id)),
@@ -115,7 +119,7 @@ class ChatTile extends ConsumerWidget {
             padding: const EdgeInsets.symmetric(horizontal: Gaps.x4, vertical: 10),
             child: Row(
               children: [
-                Avatar(name: title, url: chat.peer?.photoUrl, size: 54, online: online, heroTag: heroAvatar(chat.id)),
+                ChatAvatar(chat: chat, peer: chat.peer, size: 54, online: online, heroTag: heroAvatar(chat.id)),
                 const SizedBox(width: Gaps.x3),
                 Expanded(
                   child: Column(

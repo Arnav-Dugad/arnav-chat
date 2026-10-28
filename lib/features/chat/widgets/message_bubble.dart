@@ -32,6 +32,10 @@ class MessageBubble extends StatefulWidget {
     this.dissolving = false,
     this.onDissolved,
     this.replyAuthor,
+    this.senderName,
+    this.senderColor,
+    this.avatar,
+    this.onVote,
   });
 
   final Message message;
@@ -43,6 +47,12 @@ class MessageBubble extends StatefulWidget {
   final bool animateIn;
   final bool dissolving;
   final String? replyAuthor;
+
+  /// Groups: sender label (first bubble of a run) and avatar slot (incoming).
+  final String? senderName;
+  final Color? senderColor;
+  final Widget? avatar;
+  final void Function(String optionId)? onVote;
   final VoidCallback onReply;
   final void Function(GlobalKey bubbleKey) onLongPress;
   final VoidCallback onDoubleTap;
@@ -117,6 +127,10 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
         first: widget.first,
         last: widget.last,
         replyAuthor: widget.replyAuthor,
+        senderName: widget.first ? widget.senderName : null,
+        senderColor: widget.senderColor,
+        myUid: widget.myUid,
+        onVote: widget.onVote,
       ),
     );
 
@@ -259,6 +273,19 @@ class _MessageBubbleState extends State<MessageBubble> with TickerProviderStateM
 
     if (widget.dissolving) {
       row = Dissolve(color: widget.mine ? p.primary : p.textMuted, onDone: widget.onDissolved ?? () {}, child: row);
+    }
+
+    if (widget.avatar != null && !widget.mine) {
+      // Avatar sits beside the last bubble of an incoming run; earlier
+      // bubbles keep the same indent so the column stays aligned.
+      row = Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          SizedBox(width: 30, child: widget.last ? widget.avatar : null),
+          const SizedBox(width: 6),
+          Expanded(child: row),
+        ],
+      );
     }
 
     return Padding(

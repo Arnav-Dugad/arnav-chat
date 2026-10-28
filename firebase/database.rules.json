@@ -12,11 +12,20 @@
         "$other": { ".validate": false }
       }
     },
+    "groupMembers": {
+      "$chatId": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid && $chatId.length >= 20 && !$chatId.contains('_')",
+          ".validate": "!newData.exists() || newData.val() === true"
+        }
+      }
+    },
     "typing": {
       "$chatId": {
-        ".read": "auth != null && ($chatId === auth.uid || $chatId.beginsWith(auth.uid + '_') || $chatId.endsWith('_' + auth.uid))",
+        ".read": "auth != null && ($chatId === auth.uid || $chatId.beginsWith(auth.uid + '_') || $chatId.endsWith('_' + auth.uid) || root.child('groupMembers').child($chatId).child(auth.uid).exists())",
         "$uid": {
-          ".write": "auth != null && auth.uid === $uid && ($chatId === auth.uid || $chatId.beginsWith(auth.uid + '_') || $chatId.endsWith('_' + auth.uid))",
+          ".write": "auth != null && auth.uid === $uid && ($chatId === auth.uid || $chatId.beginsWith(auth.uid + '_') || $chatId.endsWith('_' + auth.uid) || root.child('groupMembers').child($chatId).child(auth.uid).exists())",
           ".validate": "!newData.exists() || (newData.isNumber() && newData.val() <= now)"
         }
       }

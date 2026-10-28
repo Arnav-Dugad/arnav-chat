@@ -3,12 +3,14 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/config/env.dart';
 import 'local/app_database.dart';
 import 'models/app_user.dart';
+import 'remote/fcm_topics.dart';
 import 'remote/firestore_refs.dart';
 import 'remote/link_preview_service.dart';
 import 'remote/media_uploader.dart';
@@ -17,6 +19,7 @@ import 'remote/presence_service.dart';
 import 'remote/worker_api.dart';
 import 'repositories/auth_repository.dart';
 import 'repositories/chat_repository.dart';
+import 'repositories/group_repository.dart';
 import 'repositories/message_repository.dart';
 import 'repositories/outbox_service.dart';
 import 'repositories/user_repository.dart';
@@ -99,6 +102,12 @@ AppUser me(Ref ref) {
   throw StateError('No profile yet');
 }
 
+/// Display name for system messages / group previews. Safe before onboarding.
+String Function() _myName(Ref ref) => () {
+  final s = ref.read(sessionProvider).value;
+  return s is SessionReady ? s.me.displayName : 'Someone';
+};
+
 String _uid(Ref ref) {
   final uid = ref.watch(currentUidProvider);
   if (uid == null) throw StateError('Signed out');
@@ -128,10 +137,16 @@ ChatRepository chatRepository(Ref ref) {
     ref.watch(appDatabaseProvider),
     ref.watch(userRepositoryProvider),
     _uid(ref),
+    ref.watch(sharedPrefsProvider),
+    topics: kIsWeb ? null : const FcmTopics(),
   );
   ref.onDispose(repo.stopSync);
   return repo;
 }
+
+@Riverpod(keepAlive: true)
+GroupRepository groupRepository(Ref ref) =>
+    GroupRepository(ref.watch(firestoreRefsProvider), ref.watch(messageWriterProvider), _uid(ref), _myName(ref));
 
 @Riverpod(keepAlive: true)
 MessageWriter messageWriter(Ref ref) => MessageWriter(ref.watch(firestoreRefsProvider));
@@ -156,6 +171,7 @@ OutboxService outbox(Ref ref) {
     ref.watch(mediaUploaderProvider),
     ref.watch(workerApiProvider),
     _uid(ref),
+    _myName(ref),
   );
   ref.onDispose(o.dispose);
   return o;

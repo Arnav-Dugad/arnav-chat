@@ -58,4 +58,15 @@ class PresenceService {
 
   Stream<bool> watchTyping(String chatId, String peerUid) =>
       _typing(chatId, peerUid).onValue.map((e) => e.snapshot.value != null);
+
+  /// Everyone typing in [chatId] except me (groups).
+  Stream<List<String>> watchTypingAny(String chatId) => _db.ref('typing/$chatId').onValue.map((e) {
+    final v = e.snapshot.value;
+    if (v is! Map) return const <String>[];
+    return v.keys.map((k) => '$k').where((k) => k != _uid).toList();
+  });
+
+  /// Groups: RTDB cannot see Firestore membership, so members self-register
+  /// to unlock the group's typing path (see firebase/database.rules.json).
+  Future<void> registerGroupMember(String chatId) => _db.ref('groupMembers/$chatId/$_uid').set(true);
 }

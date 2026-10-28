@@ -26,9 +26,19 @@ class MessageWriter {
     required int clientTs,
     ReplyRef? reply,
     bool forwarded = false,
+    bool group = false,
+    String? senderName,
   }) {
     final now = FieldValue.serverTimestamp();
     final others = members.where((m) => m != senderId).toList();
+    final lastMessage = {
+      'id': messageId,
+      'senderId': senderId,
+      'kind': payload.kind.name,
+      'preview': _clip(payload.preview),
+      'at': now,
+      if (group && senderName != null) 'senderName': senderName,
+    };
     final batch = _refs.fs.batch()
       ..set(_refs.messages(chatId).doc(messageId), {
         'senderId': senderId,
@@ -38,22 +48,36 @@ class MessageWriter {
         'payload': codec.encode(payload),
         if (reply != null) 'reply': reply.toMap(),
         if (forwarded) 'forwarded': true,
-      })
-      ..set(_refs.chat(chatId), {
+      });
+    if (group) {
+      // Groups: one counter bump instead of a per-member unread field.
+      // My own readSeq moves with it, so my message never counts as unread.
+      batch.update(_refs.chat(chatId), {
+        'updatedAt': now,
+        'lastMessage': lastMessage,
+        'seq': FieldValue.increment(1),
+        'readSeq.$senderId': FieldValue.increment(1),
+      });
+    } else {
+      batch.set(_refs.chat(chatId), {
         'type': members.length == 1 ? 'self' : 'direct',
         'members': members,
         'updatedAt': now,
-        'lastMessage': {
-          'id': messageId,
-          'senderId': senderId,
-          'kind': payload.kind.name,
-          'preview': _clip(payload.preview),
-          'at': now,
-        },
+        'lastMessage': lastMessage,
         'unread': {for (final o in others) o: FieldValue.increment(1)},
       }, SetOptions(merge: true));
+    }
     return batch.commit();
   }
+
+  Future<void> vote(String chatId, String messageId, String uid, List<String> optionIds) =>
+      _refs.messages(chatId).doc(messageId).update({
+        'votes.$uid': optionIds.isEmpty ? FieldValue.delete() : optionIds,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+  Future<void> setPins(String chatId, List<Map<String, dynamic>> pins) =>
+      _refs.chat(chatId).update({'pinned': pins, 'updatedAt': FieldValue.serverTimestamp()});
 
   Future<bool> existsOnServer(String chatId, String messageId) async {
     final s = await _refs.messages(chatId).doc(messageId).get(const GetOptions(source: Source.server));

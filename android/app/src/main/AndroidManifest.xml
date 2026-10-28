@@ -32,6 +32,13 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Invite links and profile QR codes: arnavchat://app/join/<code>, arnavchat://app/u/<name> -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="arnavchat" android:host="app" />
+            </intent-filter>
         </activity>
 
         <provider

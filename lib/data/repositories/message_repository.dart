@@ -59,6 +59,7 @@ class MessageRepository {
     editedAt: r.editedAt == null ? null : DateTime.fromMillisecondsSinceEpoch(r.editedAt!),
     deletedForEveryone: r.deletedForEveryone,
     reactions: Map<String, String>.from(jsonDecode(r.reactionsJson) as Map),
+    votes: (jsonDecode(r.votesJson) as Map).map((k, v) => MapEntry(k as String, List<String>.from(v as List))),
     state: SendState.values[r.sendState],
     starred: r.starred,
     localPath: r.localPath,
@@ -150,6 +151,8 @@ class MessageRepository {
         millisOf(d['createdAt']) ?? (d['clientTs'] as num?)?.toInt() ?? DateTime.now().millisecondsSinceEpoch;
     final updated = millisOf(d['updatedAt']);
     final reactions = (d['reactions'] as Map?)?.map((k, v) => MapEntry(k as String, v as String)) ?? const {};
+    final votes = (d['votes'] as Map?)?.map((k, v) => MapEntry(k as String, List<String>.from(v as List))) ?? const {};
+    final index = indexFor(codec.decode(Map<String, dynamic>.from(d['payload'] as Map? ?? const {})));
     final chat = await (_db.select(_db.chats)..where((t) => t.id.equals(chatId))).getSingleOrNull();
     final hidden = chat?.clearedAt != null && created <= chat!.clearedAt!;
     final remote = MessagesCompanion(
@@ -165,6 +168,9 @@ class MessageRepository {
       editedAt: Value(millisOf(d['editedAt'])),
       deletedForEveryone: Value(d['deleted'] == true),
       reactionsJson: Value(jsonEncode(reactions)),
+      votesJson: Value(jsonEncode(votes)),
+      kind: Value(index.kind),
+      searchText: Value(index.text),
       sendState: const Value(0),
     );
     await _db.into(_db.messages).insert(remote.copyWith(hidden: Value(hidden)), onConflict: DoUpdate((_) => remote));
@@ -189,6 +195,8 @@ class MessageRepository {
           chatId: chatId,
           senderId: _uid,
           createdAt: createdAt,
+          kind: Value(indexFor(payload).kind),
+          searchText: Value(indexFor(payload).text),
           payloadJson: jsonEncode(codec.encode(payload)),
           replyJson: Value(reply == null ? null : jsonEncode(reply.toMap())),
           forwarded: Value(forwarded),
@@ -211,15 +219,16 @@ class MessageRepository {
     );
   }
 
-  Future<void> setPayload(String id, MessagePayload p) => (_db.update(
-    _db.messages,
-  )..where((t) => t.id.equals(id))).write(MessagesCompanion(payloadJson: Value(jsonEncode(codec.encode(p)))));
+  Future<void> setPayload(String id, MessagePayload p) => (_db.update(_db.messages)..where((t) => t.id.equals(id))).write(
+    MessagesCompanion(payloadJson: Value(jsonEncode(codec.encode(p))), searchText: Value(indexFor(p).text)),
+  );
 
   Future<void> edit(String chatId, String id, String text) async {
     final p = MessagePayload.text(text);
     await (_db.update(_db.messages)..where((t) => t.id.equals(id))).write(
       MessagesCompanion(
         payloadJson: Value(jsonEncode(codec.encode(p))),
+        searchText: Value(indexFor(p).text),
         editedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );
@@ -260,8 +269,86 @@ class MessageRepository {
           .watch()
           .map((rows) => rows.map(fromRow).toList());
 
+  /// Toggle (single choice) or add/remove (multi) my vote, optimistically.
+  Future<void> vote(Message m, String optionId) async {
+    final poll = m.payload.poll;
+    if (poll == null) return;
+    final mine = List<String>.from(m.votes[_uid] ?? const []);
+    if (mine.contains(optionId)) {
+      mine.remove(optionId);
+    } else if (poll.multi) {
+      mine.add(optionId);
+    } else {
+      mine
+        ..clear()
+        ..add(optionId);
+    }
+    final votes = Map<String, List<String>>.from(m.votes);
+    mine.isEmpty ? votes.remove(_uid) : votes[_uid] = mine;
+    await (_db.update(_db.messages)..where((t) => t.id.equals(m.id))).write(
+      MessagesCompanion(votesJson: Value(jsonEncode(votes))),
+    );
+    unawaited(_writer.vote(m.chatId, m.id, _uid, mine).catchError((_) {}));
+  }
+
+  // ---------- search & gallery (local cache, zero Firestore reads) ----------
+
+  Future<List<Message>> search(String query, {int limit = 60}) async {
+    final q = query.trim().toLowerCase();
+    if (q.length < 2) return const [];
+    final rows =
+        await (_db.select(_db.messages)
+              ..where((t) => t.hidden.equals(false) & t.deletedForEveryone.equals(false) & t.searchText.like('%$q%'))
+              ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
+              ..limit(limit))
+            .get();
+    return rows.map(fromRow).toList();
+  }
+
+  /// [kinds]: e.g. ['image', 'video'] for media, ['link'] for links.
+  Stream<List<Message>> watchGallery(String chatId, List<String> kinds) =>
+      (_db.select(_db.messages)
+            ..where(
+              (t) =>
+                  t.chatId.equals(chatId) & t.hidden.equals(false) & t.deletedForEveryone.equals(false) & t.kind.isIn(kinds),
+            )
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          .watch()
+          .map((rows) => rows.map(fromRow).toList());
+
+  /// Index of the newest-first message list for [messageId], or -1.
+  Future<int> positionOf(String chatId, String messageId) async {
+    final target = await (_db.select(_db.messages)..where((t) => t.id.equals(messageId))).getSingleOrNull();
+    if (target == null) return -1;
+    final c = _db.messages.id.count();
+    final q = _db.selectOnly(_db.messages)
+      ..addColumns([c])
+      ..where(
+        _db.messages.chatId.equals(chatId) &
+            _db.messages.hidden.equals(false) &
+            _db.messages.createdAt.isBiggerThanValue(target.createdAt),
+      );
+    return (await q.getSingle()).read(c) ?? -1;
+  }
+
   Future<Message?> byId(String id) async {
     final r = await (_db.select(_db.messages)..where((t) => t.id.equals(id))).getSingleOrNull();
     return r == null ? null : fromRow(r);
   }
+}
+
+/// Searchable text + gallery kind for a payload.
+({String kind, String text}) indexFor(MessagePayload p) {
+  final hasLink = p.link != null || RegExp(r'https?://', caseSensitive: false).hasMatch(p.text ?? '');
+  final kind = switch (p.kind) {
+    MessageKind.text when hasLink => 'link',
+    final k => k.name,
+  };
+  final parts = [
+    p.text ?? '',
+    p.media?.name ?? '',
+    p.link?.title ?? '',
+    for (final o in p.poll?.options ?? const <PollOption>[]) o.text,
+  ];
+  return (kind: kind, text: parts.where((e) => e.isNotEmpty).join(' ').toLowerCase());
 }

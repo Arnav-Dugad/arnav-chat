@@ -41,6 +41,16 @@ describe('typing', () => {
     await assertFails(set(ref(rtdb('eve'), 'typing/alice_bob/eve'), serverTimestamp()));
   });
 
+  it('group typing requires self-registration under groupMembers', async () => {
+    const g = 'grp0000000000000000001';
+    await assertFails(set(ref(rtdb('bob'), `typing/${g}/bob`), serverTimestamp()));
+    await assertFails(set(ref(rtdb('bob'), `groupMembers/${g}/alice`), true));
+    await assertSucceeds(set(ref(rtdb('bob'), `groupMembers/${g}/bob`), true));
+    await assertSucceeds(set(ref(rtdb('bob'), `typing/${g}/bob`), serverTimestamp()));
+    await assertSucceeds(get(ref(rtdb('bob'), `typing/${g}`)));
+    await assertFails(get(ref(rtdb('eve'), `typing/${g}`)));
+  });
+
   it('only chat members read typing', async () => {
     await assertSucceeds(get(ref(rtdb('bob'), 'typing/alice_bob')));
     await assertFails(get(ref(rtdb('eve'), 'typing/alice_bob')));

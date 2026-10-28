@@ -7,7 +7,7 @@ import '../../../core/design/tokens.dart';
 import '../../../core/widgets/glass_sheet.dart';
 import '../../../core/widgets/pressable.dart';
 
-enum AttachKind { photo, camera, video, file }
+enum AttachKind { photo, camera, video, file, poll }
 
 /// Glass sheet whose tiles unfold with a staggered spring.
 Future<AttachKind?> showAttachmentSheet(BuildContext context) =>
@@ -21,6 +21,7 @@ class _AttachmentGrid extends StatelessWidget {
     (AttachKind.camera, AppIcons.camera, 'Camera', [Color(0xFFE0525F), Color(0xFFF59E6C)]),
     (AttachKind.video, AppIcons.video, 'Video', [Color(0xFF15946A), Color(0xFF7BCB5A)]),
     (AttachKind.file, AppIcons.file, 'File', [Color(0xFFD9861C), Color(0xFFF2C14E)]),
+    (AttachKind.poll, AppIcons.poll, 'Poll', [Color(0xFF8A63D2), Color(0xFFC08CF0)]),
   ];
 
   @override
@@ -36,6 +37,7 @@ class _AttachmentGrid extends StatelessWidget {
                   semanticLabel: label,
                   onTap: () => Navigator.of(context).pop(kind),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
                         width: 62,

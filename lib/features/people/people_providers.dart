@@ -25,9 +25,10 @@ Future<void> openChatWith(BuildContext context, WidgetRef ref, AppUser user) asy
 }
 
 /// QR payload format for adding a contact.
-String qrPayloadFor(String username) => 'arnavchat://u/$username';
+String qrPayloadFor(String username) => 'arnavchat://app/u/$username';
 
 String? usernameFromQr(String raw) {
-  final m = RegExp(r'^arnavchat://u/([a-z0-9_]{3,20})$').firstMatch(raw.trim());
+  // Accepts the v1.0 format (arnavchat://u/x) and the deep-link one (arnavchat://app/u/x).
+  final m = RegExp(r'^arnavchat://(?:app/)?u/([a-z0-9_]{3,20})$').firstMatch(raw.trim());
   return m?.group(1);
 }

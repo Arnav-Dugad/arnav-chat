@@ -51,6 +51,19 @@ service cloud.firestore {
         allow read, delete: if isMe(uid);
         allow create, update: if isMe(uid) && request.resource.data.keys().hasOnly(['addedAt']);
       }
+      // Per-user chat preferences (pin/archive/mute/wallpaper) and folders.
+      match /chatState/{chatId} {
+        allow read, delete: if isMe(uid);
+        allow create, update: if isMe(uid)
+          && request.resource.data.keys().hasOnly(['pinned', 'archived', 'mutedUntil', 'wallpaper', 'accent', 'updatedAt']);
+      }
+      match /folders/{folderId} {
+        allow read, delete: if isMe(uid);
+        allow create, update: if isMe(uid)
+          && request.resource.data.keys().hasOnly(['name', 'flags', 'chatIds', 'order'])
+          && request.resource.data.name is string && request.resource.data.name.size() <= 24
+          && request.resource.data.chatIds is list && request.resource.data.chatIds.size() <= 200;
+      }
     }
 
     match /usernames/{name} {
@@ -66,10 +79,24 @@ service cloud.firestore {
     // ---------- chats ----------
 
     function chatKeys() {
-      return ['type', 'members', 'updatedAt', 'lastMessage', 'unread', 'readUpTo', 'deliveredUpTo'];
+      return ['type', 'members', 'updatedAt', 'lastMessage', 'unread', 'readUpTo', 'deliveredUpTo', 'pinned'];
+    }
+
+    function groupKeys() {
+      return ['type', 'members', 'admins', 'name', 'photoUrl', 'description', 'createdBy', 'inviteCode',
+              'topicSecret', 'seq', 'readSeq', 'updatedAt', 'lastMessage', 'pinned', 'readUpTo',
+              'deliveredUpTo', 'lastJoinCode'];
     }
 
     function peerOf(members) { return members[0] == me() ? members[members.size() - 1] : members[0]; }
+
+    function validPhoto(d) {
+      return !('photoUrl' in d) || d.photoUrl == null || (d.photoUrl is string && d.photoUrl.matches('^https://res\\.cloudinary\\.com/.*'));
+    }
+
+    function validPins(d) { return !('pinned' in d) || (d.pinned is list && d.pinned.size() <= 5); }
+
+    function onlyMyKey(after, before) { return after.diff(before).affectedKeys().hasOnly([me()]); }
 
     function validNewChat(chatId, d) {
       return d.keys().hasOnly(chatKeys())
@@ -85,7 +112,28 @@ service cloud.firestore {
         && (!('unread' in d) || d.unread.keys().hasOnly([peerOf(d.members)]));
     }
 
-    // Unread: I may reset my own counter to 0 and bump the peer's by exactly 1.
+    function validGroupShape(d) {
+      return d.members is list && d.members.size() >= 1 && d.members.size() <= 256
+        && d.admins is list && d.admins.size() >= 1 && d.members.hasAll(d.admins)
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 64
+        && (!('description' in d) || d.description == null || (d.description is string && d.description.size() <= 280))
+        && d.topicSecret is string && d.topicSecret.size() >= 16
+        && validPhoto(d) && validPins(d);
+    }
+
+    function validNewGroup(d) {
+      return d.keys().hasOnly(groupKeys())
+        && d.type == 'group'
+        && me() in d.members && me() in d.admins
+        && d.createdBy == me()
+        && d.updatedAt == request.time
+        && validGroupShape(d)
+        && d.seq is int && d.seq <= 1
+        && (!('lastMessage' in d) || d.lastMessage.senderId == me())
+        && (!('readSeq' in d) || d.readSeq.keys().hasOnly([me()]));
+    }
+
+    // Direct chats — unread: I may reset my own counter to 0 and bump the peer's by exactly 1.
     function validUnread(before, after) {
       let peer = peerOf(resource.data.members);
       let keys = after.diff(before).affectedKeys();
@@ -94,31 +142,95 @@ service cloud.firestore {
         && (!(peer in keys) || peer == me() || after[peer] == before.get(peer, 0) + 1);
     }
 
-    function validChatUpdate() {
+    function validReceipts(d, keys) {
+      return (!('readUpTo' in keys) || onlyMyKey(d.readUpTo, resource.data.get('readUpTo', {})))
+        && (!('deliveredUpTo' in keys) || onlyMyKey(d.deliveredUpTo, resource.data.get('deliveredUpTo', {})));
+    }
+
+    function validDirectUpdate() {
       let d = request.resource.data;
       let keys = changed();
-      return keys.hasOnly(['updatedAt', 'lastMessage', 'unread', 'readUpTo', 'deliveredUpTo'])
+      return keys.hasOnly(['updatedAt', 'lastMessage', 'unread', 'readUpTo', 'deliveredUpTo', 'pinned'])
         && d.updatedAt == request.time
         && (!('lastMessage' in keys) || d.lastMessage.senderId == me())
-        && (!('readUpTo' in keys) || d.readUpTo.diff(resource.data.get('readUpTo', {})).affectedKeys().hasOnly([me()]))
-        && (!('deliveredUpTo' in keys) || d.deliveredUpTo.diff(resource.data.get('deliveredUpTo', {})).affectedKeys().hasOnly([me()]))
+        && validReceipts(d, keys)
+        && validPins(d)
         && (!('unread' in keys) || validUnread(resource.data.get('unread', {}), d.unread));
+    }
+
+    // Groups — a message bumps `seq` by exactly one; readSeq only ever moves for me.
+    function validSeq(d, keys) {
+      return (!('seq' in keys) || (d.seq == resource.data.seq + 1 && 'lastMessage' in keys))
+        && (!('lastMessage' in keys) || d.lastMessage.senderId == me())
+        && (!('readSeq' in keys) || (onlyMyKey(d.readSeq, resource.data.get('readSeq', {})) && d.readSeq[me()] <= d.seq));
+    }
+
+    function validGroupMemberUpdate() {
+      let d = request.resource.data;
+      let keys = changed();
+      return keys.hasOnly(['updatedAt', 'lastMessage', 'seq', 'readSeq', 'readUpTo', 'deliveredUpTo'])
+        && d.updatedAt == request.time
+        && validSeq(d, keys) && validReceipts(d, keys);
+    }
+
+    function validGroupAdminUpdate() {
+      let d = request.resource.data;
+      let keys = changed();
+      return me() in resource.data.admins
+        && keys.hasOnly(['updatedAt', 'name', 'photoUrl', 'description', 'members', 'admins', 'inviteCode',
+                         'topicSecret', 'pinned', 'lastMessage', 'seq', 'readSeq', 'readUpTo', 'deliveredUpTo'])
+        && d.updatedAt == request.time
+        && validGroupShape(d)
+        && validSeq(d, keys) && validReceipts(d, keys);
+    }
+
+    // Any member may leave (remove only themselves; admins list untouched unless they use the admin path).
+    function validLeave() {
+      let d = request.resource.data;
+      let keys = changed();
+      return keys.hasOnly(['updatedAt', 'members', 'lastMessage', 'seq', 'readSeq'])
+        && d.updatedAt == request.time
+        && d.members.toSet() == resource.data.members.toSet().difference([me()].toSet())
+        && !(me() in resource.data.admins)
+        && validSeq(d, keys);
+    }
+
+    // A non-member joins by presenting the current invite code.
+    function validJoin() {
+      let d = request.resource.data;
+      let keys = changed();
+      return resource.data.type == 'group'
+        && resource.data.get('inviteCode', null) != null
+        && d.lastJoinCode == resource.data.inviteCode
+        && keys.hasOnly(['updatedAt', 'members', 'lastJoinCode', 'lastMessage', 'seq', 'readSeq'])
+        && d.updatedAt == request.time
+        && d.members.toSet() == resource.data.members.toSet().union([me()].toSet())
+        && d.members.size() == resource.data.members.size() + 1
+        && d.members.size() <= 256
+        && validSeq(d, keys);
     }
 
     match /chats/{chatId} {
       // Reading a chat that does not exist yet is allowed (reveals nothing).
       allow read: if signedIn() && (resource == null || me() in resource.data.members);
-      allow create: if signedIn() && validNewChat(chatId, request.resource.data);
-      allow update: if signedIn() && me() in resource.data.members && validChatUpdate();
+      allow create: if signedIn() && (validNewChat(chatId, request.resource.data) || validNewGroup(request.resource.data));
+      allow update: if signedIn() && (
+        (resource.data.type != 'group' && me() in resource.data.members && validDirectUpdate())
+        || (resource.data.type == 'group' && me() in resource.data.members
+            && (validGroupMemberUpdate() || validGroupAdminUpdate() || validLeave()))
+        || (resource.data.type == 'group' && !(me() in resource.data.members) && validJoin())
+      );
       allow delete: if false;
 
       // ---------- messages ----------
 
       function validPayload(p) {
         return p is map
-          && p.keys().hasOnly(['v', 'enc', 'kind', 'text', 'media', 'link', 'ct', 'iv'])
-          && p.kind in ['text', 'image', 'video', 'audio', 'file', 'deleted']
-          && (!('text' in p) || (p.text is string && p.text.size() <= 4096));
+          && p.keys().hasOnly(['v', 'enc', 'kind', 'text', 'media', 'link', 'poll', 'mentions', 'ct', 'iv'])
+          && p.kind in ['text', 'image', 'video', 'audio', 'file', 'deleted', 'poll', 'system']
+          && (!('text' in p) || (p.text is string && p.text.size() <= 4096))
+          && (!('mentions' in p) || (p.mentions is list && p.mentions.size() <= 50))
+          && (!('poll' in p) || (p.poll is map && p.poll.opts is list && p.poll.opts.size() >= 2 && p.poll.opts.size() <= 10));
       }
 
       match /messages/{messageId} {
@@ -131,7 +243,7 @@ service cloud.firestore {
           && request.resource.data.updatedAt == request.time
           && validPayload(request.resource.data.payload);
 
-        // Sender: edit text / delete for everyone. Anyone in the chat: own reaction only.
+        // Sender: edit text / delete for everyone. Anyone in the chat: own reaction / own vote only.
         allow update: if memberOf(chatId)
           && request.resource.data.updatedAt == request.time
           && request.resource.data.senderId == resource.data.senderId
@@ -142,13 +254,29 @@ service cloud.firestore {
               && validPayload(request.resource.data.payload)
               && (!('editedAt' in changed()) || request.resource.data.editedAt == request.time))
             || (changed().hasOnly(['reactions', 'updatedAt'])
-              && request.resource.data.reactions.diff(resource.data.get('reactions', {})).affectedKeys().hasOnly([me()])
+              && onlyMyKey(request.resource.data.reactions, resource.data.get('reactions', {}))
               && (!(me() in request.resource.data.reactions) || (request.resource.data.reactions[me()] is string && request.resource.data.reactions[me()].size() <= 16)))
+            || (resource.data.payload.kind == 'poll'
+              && changed().hasOnly(['votes', 'updatedAt'])
+              && onlyMyKey(request.resource.data.votes, resource.data.get('votes', {}))
+              && (!(me() in request.resource.data.votes) || (request.resource.data.votes[me()] is list && request.resource.data.votes[me()].size() <= 10)))
           );
 
         // Deletion for everyone is a tombstone update, never a hard delete.
         allow delete: if false;
       }
+    }
+
+    // Public preview card for a group invite link. Only admins create it, and
+    // only for the chat's current invite code.
+    match /invites/{code} {
+      allow read: if signedIn();
+      allow create, update: if signedIn()
+        && code.size() >= 10
+        && request.resource.data.keys().hasOnly(['chatId', 'name', 'photoUrl', 'memberCount', 'updatedAt'])
+        && me() in getAfter(chatPath(request.resource.data.chatId)).data.admins
+        && getAfter(chatPath(request.resource.data.chatId)).data.inviteCode == code;
+      allow delete: if signedIn() && me() in get(chatPath(resource.data.chatId)).data.admins;
     }
 
     match /{document=**} {

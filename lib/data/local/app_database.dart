@@ -42,6 +42,26 @@ class Chats extends Table {
   /// Messages before this time (ms) are hidden ("delete chat" for me).
   IntColumn get clearedAt => integer().nullable()();
 
+  // ---- v2: groups, pins, appearance ----
+  TextColumn get title => text().nullable()();
+  TextColumn get photoUrl => text().nullable()();
+  TextColumn get description => text().nullable()();
+  TextColumn get adminsJson => text().withDefault(const Constant('[]'))();
+  TextColumn get pinnedJson => text().withDefault(const Constant('[]'))();
+  TextColumn get inviteCode => text().nullable()();
+
+  /// FCM topic secret (groups); push topic is `g_{id}_{secret}`.
+  TextColumn get topicSecret => text().nullable()();
+
+  /// Group message counter and my read position in it (unread = seq - readSeq).
+  IntColumn get seq => integer().withDefault(const Constant(0))();
+  IntColumn get readSeq => integer().withDefault(const Constant(0))();
+
+  /// I was removed from / left the group.
+  BoolColumn get left => boolean().withDefault(const Constant(false))();
+  TextColumn get wallpaper => text().nullable()();
+  TextColumn get accent => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -69,6 +89,28 @@ class Messages extends Table {
   BoolColumn get hidden => boolean().withDefault(const Constant(false))();
   TextColumn get localPath => text().nullable()();
 
+  // ---- v2 ----
+  /// Lower-cased searchable text (message text, captions, file names, polls).
+  TextColumn get searchText => text().nullable()();
+  TextColumn get votesJson => text().withDefault(const Constant('{}'))();
+
+  /// Coarse kind for the media gallery (image, video, audio, file, link, ...).
+  TextColumn get kind => text().withDefault(const Constant('text'))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('FolderRow')
+class Folders extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+
+  /// Bit flags, see ChatFolder.flags.
+  IntColumn get flags => integer().withDefault(const Constant(0))();
+  TextColumn get chatIdsJson => text().withDefault(const Constant('[]'))();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -92,14 +134,48 @@ class Meta extends Table {
   Set<Column> get primaryKey => {key};
 }
 
-@DriftDatabase(tables: [Users, Chats, Messages, Contacts, Meta])
+@DriftDatabase(tables: [Users, Chats, Messages, Contacts, Meta, Folders])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(String uid) : super(_open(uid));
 
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        for (final col in [
+          chats.title,
+          chats.photoUrl,
+          chats.description,
+          chats.adminsJson,
+          chats.pinnedJson,
+          chats.inviteCode,
+          chats.topicSecret,
+          chats.seq,
+          chats.readSeq,
+          chats.left,
+          chats.wallpaper,
+          chats.accent,
+        ]) {
+          await m.addColumn(chats, col);
+        }
+        await m.addColumn(messages, messages.searchText);
+        await m.addColumn(messages, messages.votesJson);
+        await m.addColumn(messages, messages.kind);
+        await m.createTable(folders);
+        // Backfill search + gallery columns for history cached by v1.
+        await customStatement(
+          "UPDATE messages SET kind = COALESCE(json_extract(payload_json, '\$.kind'), 'text'), "
+          "search_text = lower(COALESCE(json_extract(payload_json, '\$.text'), '') || ' ' || "
+          "COALESCE(json_extract(payload_json, '\$.media.name'), ''))",
+        );
+      }
+    },
+  );
 
   static QueryExecutor _open(String uid) => driftDatabase(
     name: 'arnav_chat_$uid',

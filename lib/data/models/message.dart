@@ -37,6 +37,7 @@ class Message {
     this.editedAt,
     this.deletedForEveryone = false,
     this.reactions = const {},
+    this.votes = const {},
     this.state = SendState.sent,
     this.starred = false,
     this.localPath,
@@ -56,6 +57,9 @@ class Message {
 
   /// uid -> emoji
   final Map<String, String> reactions;
+
+  /// Poll votes: uid -> chosen option ids.
+  final Map<String, List<String>> votes;
   final SendState state;
   final bool starred;
 
@@ -83,4 +87,17 @@ class Message {
     }
     return counts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
   }
+
+  /// Option id -> number of voters.
+  Map<String, int> get voteCounts {
+    final counts = <String, int>{};
+    for (final picks in votes.values) {
+      for (final id in picks) {
+        counts[id] = (counts[id] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }
+
+  int get voterCount => votes.values.where((v) => v.isNotEmpty).length;
 }

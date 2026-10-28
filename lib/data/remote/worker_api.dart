@@ -72,5 +72,12 @@ class WorkerApi {
     required String messageId,
     required String preview,
     required String kind,
-  }) => _post('/v1/notify', {'chatId': chatId, 'messageId': messageId, 'preview': preview, 'kind': kind});
+    List<String> mentions = const [],
+  }) => _post('/v1/notify', {
+    'chatId': chatId,
+    'messageId': messageId,
+    'preview': preview,
+    'kind': kind,
+    if (mentions.isNotEmpty) 'mentions': mentions,
+  });
 }

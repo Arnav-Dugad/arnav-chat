@@ -1,7 +1,7 @@
 /// The message body. Everything that would be encrypted end-to-end lives here,
 /// so an E2EE [PayloadCodec] can later replace [PlainPayloadCodec] without
 /// touching the rest of the message document.
-enum MessageKind { text, image, video, audio, file, deleted }
+enum MessageKind { text, image, video, audio, file, deleted, poll, system }
 
 class MediaRef {
   const MediaRef({
@@ -98,10 +98,60 @@ class LinkPreview {
   );
 }
 
-class MessagePayload {
-  const MessagePayload({required this.kind, this.text, this.media, this.link});
+class PollOption {
+  const PollOption(this.id, this.text);
+  final String id;
+  final String text;
+}
 
-  const MessagePayload.text(String this.text, {this.link}) : kind = MessageKind.text, media = null;
+class Poll {
+  const Poll({required this.question, required this.options, this.multi = false});
+
+  final String question;
+  final List<PollOption> options;
+
+  /// Voters may pick several options.
+  final bool multi;
+
+  Map<String, dynamic> toMap() => {
+    'q': question,
+    'opts': [for (final o in options) {'id': o.id, 't': o.text}],
+    if (multi) 'multi': true,
+  };
+
+  factory Poll.fromMap(Map<String, dynamic> m) => Poll(
+    question: m['q'] as String? ?? '',
+    options: [
+      for (final o in (m['opts'] as List? ?? const []))
+        PollOption((o as Map)['id'] as String? ?? '', o['t'] as String? ?? ''),
+    ],
+    multi: m['multi'] == true,
+  );
+}
+
+class MessagePayload {
+  const MessagePayload({required this.kind, this.text, this.media, this.link, this.poll, this.mentions = const []});
+
+  const MessagePayload.text(String this.text, {this.link, this.mentions = const []})
+    : kind = MessageKind.text,
+      media = null,
+      poll = null;
+
+  /// Poll questions are mirrored into [text] so clients that predate polls
+  /// still show something sensible.
+  MessagePayload.poll(Poll this.poll)
+    : kind = MessageKind.poll,
+      text = poll.question,
+      media = null,
+      link = null,
+      mentions = const [];
+
+  const MessagePayload.system(String this.text)
+    : kind = MessageKind.system,
+      media = null,
+      link = null,
+      poll = null,
+      mentions = const [];
 
   static const deleted = MessagePayload(kind: MessageKind.deleted);
 
@@ -109,6 +159,10 @@ class MessagePayload {
   final String? text;
   final MediaRef? media;
   final LinkPreview? link;
+  final Poll? poll;
+
+  /// uids @mentioned in [text].
+  final List<String> mentions;
 
   bool get hasMedia => media != null;
 
@@ -120,10 +174,18 @@ class MessagePayload {
     MessageKind.audio => 'Voice message',
     MessageKind.file => media?.name ?? 'File',
     MessageKind.deleted => 'Message deleted',
+    MessageKind.poll => 'Poll · ${poll?.question ?? text ?? ''}',
+    MessageKind.system => text ?? '',
   };
 
-  MessagePayload copyWith({String? text, MediaRef? media, LinkPreview? link}) =>
-      MessagePayload(kind: kind, text: text ?? this.text, media: media ?? this.media, link: link ?? this.link);
+  MessagePayload copyWith({String? text, MediaRef? media, LinkPreview? link}) => MessagePayload(
+    kind: kind,
+    text: text ?? this.text,
+    media: media ?? this.media,
+    link: link ?? this.link,
+    poll: poll,
+    mentions: mentions,
+  );
 }
 
 /// Encodes a [MessagePayload] into the Firestore `payload` field and back.
@@ -146,6 +208,8 @@ class PlainPayloadCodec implements PayloadCodec {
     if (p.text != null && p.text!.isNotEmpty) 'text': p.text,
     if (p.media != null) 'media': p.media!.toMap(),
     if (p.link != null) 'link': p.link!.toMap(),
+    if (p.poll != null) 'poll': p.poll!.toMap(),
+    if (p.mentions.isNotEmpty) 'mentions': p.mentions,
   };
 
   @override
@@ -160,6 +224,8 @@ class PlainPayloadCodec implements PayloadCodec {
       text: m['text'] as String?,
       media: m['media'] is Map ? MediaRef.fromMap(Map<String, dynamic>.from(m['media'] as Map)) : null,
       link: m['link'] is Map ? LinkPreview.fromMap(Map<String, dynamic>.from(m['link'] as Map)) : null,
+      poll: m['poll'] is Map ? Poll.fromMap(Map<String, dynamic>.from(m['poll'] as Map)) : null,
+      mentions: (m['mentions'] as List?)?.whereType<String>().toList() ?? const [],
     );
   }
 }

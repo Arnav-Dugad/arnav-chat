@@ -470,7 +470,7 @@ class LinkifiedText extends StatefulWidget {
 }
 
 class _LinkifiedTextState extends State<LinkifiedText> {
-  static final _re = RegExp(r'https?://[^\s<>"]+', caseSensitive: false);
+  static final _re = RegExp(r'https?://[^\s<>"]+|@[a-z0-9_]{3,20}', caseSensitive: false);
   final _recognizers = <TapGestureRecognizer>[];
 
   void _clear() {
@@ -494,6 +494,11 @@ class _LinkifiedTextState extends State<LinkifiedText> {
     for (final m in _re.allMatches(widget.text)) {
       if (m.start > last) spans.add(TextSpan(text: widget.text.substring(last, m.start)));
       final url = m.group(0)!;
+      if (url.startsWith('@')) {
+        spans.add(TextSpan(text: url, style: TextStyle(color: widget.linkColor, fontWeight: FontWeight.w600)));
+        last = m.end;
+        continue;
+      }
       final r = TapGestureRecognizer()..onTap = () => launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
       _recognizers.add(r);
       spans.add(

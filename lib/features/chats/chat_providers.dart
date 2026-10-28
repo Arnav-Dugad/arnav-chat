@@ -15,3 +15,12 @@ Stream<Presence> peerPresence(Ref ref, String uid) => ref.watch(presenceProvider
 
 @riverpod
 Stream<bool> peerTyping(Ref ref, String chatId, String uid) => ref.watch(presenceProvider).watchTyping(chatId, uid);
+
+@riverpod
+Stream<List<ChatSummary>> archivedChats(Ref ref) => ref.watch(chatRepositoryProvider).watchChats(archived: true);
+
+@riverpod
+Stream<int> archivedCount(Ref ref) => ref.watch(chatRepositoryProvider).watchArchivedCount();
+
+@riverpod
+Stream<List<ChatFolder>> folders(Ref ref) => ref.watch(chatRepositoryProvider).watchFolders();

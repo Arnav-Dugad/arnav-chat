@@ -65,6 +65,7 @@ worker/node_modules/
 worker/.wrangler/
 worker/.dev.vars
 firebase/tests/node_modules/
+firebase/node_modules/
 *.sha256.local
 tool/brand/node_modules/
 env/app.json

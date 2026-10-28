@@ -71,4 +71,15 @@ abstract final class AppIcons {
   static const IconData info = IconData(0xe2ce, fontFamily: _regular);
   static const IconData sparkle = IconData(0xe6a2, fontFamily: _regular);
   static const IconData sun = IconData(0xe472, fontFamily: _regular);
+  static const IconData poll = IconData(0xe150, fontFamily: _regular);
+  static const IconData bookmark = IconData(0xe0ea, fontFamily: _regular);
+  static const IconData bookmarkFill = IconData(0xe0ea, fontFamily: _fill);
+  static const IconData folder = IconData(0xe25a, fontFamily: _regular);
+  static const IconData crown = IconData(0xe616, fontFamily: _fill);
+  static const IconData images = IconData(0xe836, fontFamily: _regular);
+  static const IconData paint = IconData(0xe6f0, fontFamily: _regular);
+  static const IconData sliders = IconData(0xe434, fontFamily: _regular);
+  static const IconData dots = IconData(0xe1fe, fontFamily: _bold);
+  static const IconData group = IconData(0xe68e, fontFamily: _fill);
+
 }

@@ -81,6 +81,8 @@ class _FindPeopleScreenState extends ConsumerState<FindPeopleScreen> {
                   : _results!.isEmpty
                   ? const EmptyState(icon: AppIcons.user, label: 'No one found')
                   : ListView.builder(
+                      // Explicit padding: the body already sits below the app bar.
+                      padding: const EdgeInsets.only(top: Gaps.x1, bottom: Gaps.x8),
                       itemCount: _results!.length,
                       itemBuilder: (context, i) => UserRow(
                         user: _results![i],

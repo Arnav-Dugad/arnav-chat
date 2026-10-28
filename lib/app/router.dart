@@ -6,15 +6,24 @@ import '../data/models/app_user.dart';
 import '../data/providers.dart';
 import '../features/auth/sign_in_screen.dart';
 import '../features/chat/chat_screen.dart';
+import '../features/chats/archived_screen.dart';
 import '../features/chats/chat_list_screen.dart';
+import '../features/gallery/gallery_screen.dart';
+import '../features/groups/chat_appearance_screen.dart';
+import '../features/groups/chat_info_screen.dart';
+import '../features/groups/join_screen.dart';
+import '../features/groups/new_group_screen.dart';
 import '../features/home/home_shell.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/people/find_people_screen.dart';
 import '../features/people/people_screen.dart';
 import '../features/people/profile_screen.dart';
 import '../features/people/qr_screen.dart';
+import '../features/people/username_redirect.dart';
+import '../features/search/search_screen.dart';
 import '../features/settings/appearance_screen.dart';
 import '../features/settings/edit_profile_screen.dart';
+import '../features/settings/folders_screen.dart';
 import '../features/settings/privacy_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/settings/starred_screen.dart';
@@ -73,8 +82,24 @@ GoRouter router(Ref ref) {
       ),
       GoRoute(
         path: '/chat/:id',
-        builder: (_, s) => ChatScreen(chatId: s.pathParameters['id']!, args: s.extra as ChatRouteArgs?),
+        builder: (_, s) => ChatScreen(
+          chatId: s.pathParameters['id']!,
+          args: s.extra as ChatRouteArgs?,
+          focusMessageId: s.uri.queryParameters['m'],
+        ),
+        routes: [
+          GoRoute(path: 'info', builder: (_, s) => ChatInfoScreen(chatId: s.pathParameters['id']!)),
+          GoRoute(path: 'media', builder: (_, s) => GalleryScreen(chatId: s.pathParameters['id']!)),
+          GoRoute(path: 'appearance', builder: (_, s) => ChatAppearanceScreen(chatId: s.pathParameters['id']!)),
+        ],
       ),
+      GoRoute(path: '/new-group', builder: (_, _) => const NewGroupScreen()),
+      GoRoute(path: '/archived', builder: (_, _) => const ArchivedScreen()),
+      GoRoute(path: '/search', builder: (_, s) => SearchScreen(chatId: s.uri.queryParameters['chat'])),
+      GoRoute(path: '/settings/folders', builder: (_, _) => const FoldersScreen()),
+      // Deep links: arnavchat://app/join/<code> and arnavchat://app/u/<username>.
+      GoRoute(path: '/join/:code', builder: (_, s) => JoinScreen(code: s.pathParameters['code']!)),
+      GoRoute(path: '/u/:username', builder: (_, s) => UsernameRedirect(username: s.pathParameters['username']!)),
       GoRoute(
         path: '/user/:uid',
         builder: (_, s) => ProfileScreen(uid: s.pathParameters['uid']!),
