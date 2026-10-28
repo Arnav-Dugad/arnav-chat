@@ -1,6 +1,158 @@
 rules_version = '2';
+
+// Arnav Chat — Firestore security rules.
+// Principles: members-only chats, owner-only profiles, sender-only edits,
+// strict key allow-lists, server timestamps enforced (sync cursors rely on them).
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} { allow read, write: if false; }
+
+    function signedIn() { return request.auth != null; }
+    function me() { return request.auth.uid; }
+    function isMe(uid) { return signedIn() && me() == uid; }
+    function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
+    function chatPath(chatId) { return /databases/$(database)/documents/chats/$(chatId); }
+    function memberOf(chatId) { return signedIn() && me() in get(chatPath(chatId)).data.members; }
+    // Batches create the chat and its first message together.
+    function memberAfter(chatId) { return signedIn() && me() in getAfter(chatPath(chatId)).data.members; }
+
+    // ---------- users ----------
+
+    function validUsername(name) { return name is string && name.matches('^[a-z0-9_]{3,20}$'); }
+
+    function validProfile(d) {
+      return d.keys().hasOnly(['uid', 'username', 'usernameLower', 'displayName', 'photoUrl', 'bio', 'privacy', 'createdAt'])
+        && d.uid == me()
+        && validUsername(d.usernameLower) && d.username.lower() == d.usernameLower
+        && d.displayName is string && d.displayName.size() > 0 && d.displayName.size() <= 40
+        && (!('bio' in d) || d.bio == null || (d.bio is string && d.bio.size() <= 140))
+        && (!('photoUrl' in d) || d.photoUrl == null || (d.photoUrl is string && d.photoUrl.matches('^https://res\\.cloudinary\\.com/.*')))
+        && (!('privacy' in d) || d.privacy is map);
+    }
+
+    function ownsUsername(name) {
+      return getAfter(/databases/$(database)/documents/usernames/$(name)).data.uid == me();
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create: if isMe(uid) && validProfile(request.resource.data) && ownsUsername(request.resource.data.usernameLower);
+      // Username is immutable after onboarding (keeps the usernames index consistent).
+      allow update: if isMe(uid)
+        && validProfile(request.resource.data)
+        && request.resource.data.usernameLower == resource.data.usernameLower
+        && request.resource.data.uid == resource.data.uid;
+      allow delete: if false;
+
+      // FCM tokens: owner only (the Worker reads them with a service account).
+      match /private/{doc} {
+        allow read, write: if isMe(uid);
+      }
+      match /contacts/{contactId} {
+        allow read, delete: if isMe(uid);
+        allow create, update: if isMe(uid) && request.resource.data.keys().hasOnly(['addedAt']);
+      }
+    }
+
+    match /usernames/{name} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && validUsername(name)
+        && request.resource.data.keys().hasOnly(['uid', 'createdAt'])
+        && request.resource.data.uid == me();
+      allow update: if false;
+      allow delete: if signedIn() && resource.data.uid == me();
+    }
+
+    // ---------- chats ----------
+
+    function chatKeys() {
+      return ['type', 'members', 'updatedAt', 'lastMessage', 'unread', 'readUpTo', 'deliveredUpTo'];
+    }
+
+    function peerOf(members) { return members[0] == me() ? members[members.size() - 1] : members[0]; }
+
+    function validNewChat(chatId, d) {
+      return d.keys().hasOnly(chatKeys())
+        && d.members is list
+        && me() in d.members
+        && d.updatedAt == request.time
+        && (
+          (d.type == 'direct' && d.members.size() == 2 && d.members[0] < d.members[1]
+             && chatId == d.members[0] + '_' + d.members[1])
+          || (d.type == 'self' && d.members.size() == 1 && chatId == me())
+        )
+        && (!('lastMessage' in d) || d.lastMessage.senderId == me())
+        && (!('unread' in d) || d.unread.keys().hasOnly([peerOf(d.members)]));
+    }
+
+    // Unread: I may reset my own counter to 0 and bump the peer's by exactly 1.
+    function validUnread(before, after) {
+      let peer = peerOf(resource.data.members);
+      let keys = after.diff(before).affectedKeys();
+      return keys.hasOnly([me(), peer])
+        && (!(me() in keys) || after[me()] == 0)
+        && (!(peer in keys) || peer == me() || after[peer] == before.get(peer, 0) + 1);
+    }
+
+    function validChatUpdate() {
+      let d = request.resource.data;
+      let keys = changed();
+      return keys.hasOnly(['updatedAt', 'lastMessage', 'unread', 'readUpTo', 'deliveredUpTo'])
+        && d.updatedAt == request.time
+        && (!('lastMessage' in keys) || d.lastMessage.senderId == me())
+        && (!('readUpTo' in keys) || d.readUpTo.diff(resource.data.get('readUpTo', {})).affectedKeys().hasOnly([me()]))
+        && (!('deliveredUpTo' in keys) || d.deliveredUpTo.diff(resource.data.get('deliveredUpTo', {})).affectedKeys().hasOnly([me()]))
+        && (!('unread' in keys) || validUnread(resource.data.get('unread', {}), d.unread));
+    }
+
+    match /chats/{chatId} {
+      // Reading a chat that does not exist yet is allowed (reveals nothing).
+      allow read: if signedIn() && (resource == null || me() in resource.data.members);
+      allow create: if signedIn() && validNewChat(chatId, request.resource.data);
+      allow update: if signedIn() && me() in resource.data.members && validChatUpdate();
+      allow delete: if false;
+
+      // ---------- messages ----------
+
+      function validPayload(p) {
+        return p is map
+          && p.keys().hasOnly(['v', 'enc', 'kind', 'text', 'media', 'link', 'ct', 'iv'])
+          && p.kind in ['text', 'image', 'video', 'audio', 'file', 'deleted']
+          && (!('text' in p) || (p.text is string && p.text.size() <= 4096));
+      }
+
+      match /messages/{messageId} {
+        allow read: if memberOf(chatId);
+
+        allow create: if memberAfter(chatId)
+          && request.resource.data.keys().hasOnly(['senderId', 'createdAt', 'updatedAt', 'clientTs', 'payload', 'reply', 'forwarded'])
+          && request.resource.data.senderId == me()
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time
+          && validPayload(request.resource.data.payload);
+
+        // Sender: edit text / delete for everyone. Anyone in the chat: own reaction only.
+        allow update: if memberOf(chatId)
+          && request.resource.data.updatedAt == request.time
+          && request.resource.data.senderId == resource.data.senderId
+          && request.resource.data.createdAt == resource.data.createdAt
+          && (
+            (resource.data.senderId == me()
+              && changed().hasOnly(['payload', 'editedAt', 'deleted', 'updatedAt'])
+              && validPayload(request.resource.data.payload)
+              && (!('editedAt' in changed()) || request.resource.data.editedAt == request.time))
+            || (changed().hasOnly(['reactions', 'updatedAt'])
+              && request.resource.data.reactions.diff(resource.data.get('reactions', {})).affectedKeys().hasOnly([me()])
+              && (!(me() in request.resource.data.reactions) || (request.resource.data.reactions[me()] is string && request.resource.data.reactions[me()].size() <= 16)))
+          );
+
+        // Deletion for everyone is a tombstone update, never a hard delete.
+        allow delete: if false;
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }

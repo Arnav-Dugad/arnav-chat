@@ -1,1 +1,25 @@
-{ "rules": { ".read": false, ".write": false } }
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "status": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "!newData.exists() || (newData.hasChildren(['online']) && newData.child('online').isBoolean())",
+        "online": { ".validate": "newData.isBoolean()" },
+        "lastSeen": { ".validate": "newData.isNumber() && newData.val() <= now" },
+        "$other": { ".validate": false }
+      }
+    },
+    "typing": {
+      "$chatId": {
+        ".read": "auth != null && ($chatId === auth.uid || $chatId.beginsWith(auth.uid + '_') || $chatId.endsWith('_' + auth.uid))",
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && ($chatId === auth.uid || $chatId.beginsWith(auth.uid + '_') || $chatId.endsWith('_' + auth.uid))",
+          ".validate": "!newData.exists() || (newData.isNumber() && newData.val() <= now)"
+        }
+      }
+    }
+  }
+}
