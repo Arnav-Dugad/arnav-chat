@@ -1,0 +1,5 @@
+{
+  "WORKER_URL": "https://arnav-chat-worker.<your-subdomain>.workers.dev",
+  "GOOGLE_SERVER_CLIENT_ID": "<web OAuth client id: oauth_client with client_type 3 in google-services.json>",
+  "GITHUB_REPO": "Arnav-Dugad/arnav-chat"
+}
