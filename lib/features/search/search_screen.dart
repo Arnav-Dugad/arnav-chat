@@ -65,6 +65,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         ? const <ChatSummary>[]
         : chats.where((c) => c.title('').toLowerCase().contains(_query)).toList();
     final top = MediaQuery.paddingOf(context).top + 56;
+    // Search is local, so history that was never downloaded can't match.
+    final hint = Text(
+      'Covers messages saved on this device',
+      style: context.text.bodySmall?.copyWith(color: p.textMuted),
+    );
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -78,9 +83,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           ),
           Expanded(
             child: _query.length < 2
-                ? const EmptyState(icon: AppIcons.search, label: 'Search chats')
+                ? EmptyState(icon: AppIcons.search, label: 'Search chats', action: hint)
                 : matchingChats.isEmpty && _messages.isEmpty
-                ? const EmptyState(icon: AppIcons.search, label: 'No results')
+                ? EmptyState(icon: AppIcons.search, label: 'No results', action: hint)
                 : ListView(
                     padding: const EdgeInsets.only(top: Gaps.x2, bottom: Gaps.x8),
                     children: [
