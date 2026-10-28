@@ -141,7 +141,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -173,6 +173,12 @@ class AppDatabase extends _$AppDatabase {
           "search_text = lower(COALESCE(json_extract(payload_json, '\$.text'), '') || ' ' || "
           "COALESCE(json_extract(payload_json, '\$.media.name'), ''))",
         );
+      }
+      if (from < 3) {
+        // v1 cached groups as if they were direct chats, and the sync cursor
+        // never re-reads unchanged docs: drop it so every chat is fetched
+        // again with its group fields (also repairs installs already on v2).
+        await (delete(meta)..where((t) => t.key.equals('chatCursor'))).go();
       }
     },
   );

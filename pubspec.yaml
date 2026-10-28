@@ -3,7 +3,7 @@ description: "Arnav Chat"
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 # versionName+versionCode. Bump with: dart run tool/bump_version.dart [major|minor|patch]
-version: 1.1.0+3
+version: 1.1.1+4
 
 environment:
   sdk: ^3.13.7
