@@ -35,6 +35,6 @@ void main(List<String> args) {
   file.writeAsStringSync(text.replaceFirst(re, 'version: $next'));
   stdout.writeln('pubspec → $next');
   stdout.writeln(
-    'git commit -am "Release v$major.$minor.$patch" && git tag v$major.$minor.$patch && git push --follow-tags',
+    'git commit -am "Release v$major.$minor.$patch" && git tag v$major.$minor.$patch && git push origin main v$major.$minor.$patch',
   );
 }

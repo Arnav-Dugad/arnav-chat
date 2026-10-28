@@ -118,7 +118,7 @@ firebase emulators:exec --only "firestore,database" --project demo-arnav-chat "n
 
 ```bash
 dart run tool/bump_version.dart patch   # bumps versionName and always increments versionCode
-git commit -am "Release v1.0.1" && git tag v1.0.1 && git push --follow-tags
+git commit -am "Release v1.0.1" && git tag v1.0.1 && git push origin main v1.0.1
 ```
 
 The **Release** workflow builds signed per-ABI and universal APKs, publishes them with
